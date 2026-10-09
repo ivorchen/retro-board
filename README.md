@@ -1,6 +1,7 @@
 # Retro Board
 
-An anonymous team retrospective board — an original take on the online-retro concept.
+An anonymous team retrospective board — an original take on the online-retro concept,
+built with Next.js (App Router), TypeScript, Tailwind CSS, and shadcn-style UI.
 
 ## How a session runs
 
@@ -22,7 +23,16 @@ The session ends with a results review where top themes become assigned,
 dated action items. Boards persist in the browser (localStorage) and can be
 downloaded/reopened as JSON.
 
-## Run it
+## Development
 
-Open `index.html` in any modern browser — no build step, no server needed.
-Works on phones and desktops, light and dark mode.
+```bash
+pnpm install
+pnpm dev        # http://localhost:3000
+```
+
+## Checks
+
+```bash
+pnpm exec tsc --noEmit
+pnpm build
+```
