@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f4f1e8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#141816" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="data:," />
+  <title>Retro Board</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+    :root { color-scheme: light dark; --bg:#f4f1e8; --surface:#fffdf7; --surface-2:#ebe7db; --ink:#18201d; --muted:#5d6762; --line:#c9c8bd; --line-strong:#919890; --yellow:#f3c85c; --yellow-soft:#fff0b7; --coral:#e97b62; --coral-soft:#ffd7ce; --mint:#5eaa8b; --mint-soft:#cdeada; --dark:#1e2824; --dark-2:#2a3732; --shadow:0 10px 28px rgba(32,40,35,.09); --focus:#1a68b7; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#141816; --surface:#1d2421; --surface-2:#252d29; --ink:#edf1ed; --muted:#aeb8b2; --line:#3b4641; --line-strong:#69736e; --yellow:#d5aa42; --yellow-soft:#594919; --coral:#d9725b; --coral-soft:#5a2f26; --mint:#62b08f; --mint-soft:#244b3d; --dark:#0f1311; --dark-2:#1b2420; --shadow:0 12px 28px rgba(0,0,0,.25); --focus:#8dc0f2; } }
+    * { box-sizing:border-box; }
+    html { min-width:320px; background:var(--bg); }
+    body { margin:0; min-height:100vh; background:linear-gradient(rgba(70,80,74,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(70,80,74,.055) 1px,transparent 1px),var(--bg); background-size:28px 28px; color:var(--ink); font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif; font-size:15px; }
+    button,input,textarea,select { font:inherit; color:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:3px solid color-mix(in srgb,var(--focus) 35%,transparent); outline-offset:2px; }
+    .app { width:min(1560px,100%); margin:0 auto; min-height:100vh; }
+    .topbar { position:sticky; top:0; z-index:30; background:color-mix(in srgb,var(--bg) 91%,transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--line); padding:max(14px,env(safe-area-inset-top)) 24px 12px; }
+    .topline { display:flex; align-items:center; gap:16px; }
+    .title-wrap { flex:1; min-width:180px; }
+    .board-title { width:min(440px,100%); border:0; border-bottom:1px solid transparent; padding:2px 0 5px; background:transparent; font-size:clamp(22px,3vw,31px); line-height:1.12; font-weight:700; letter-spacing:-.035em; }
+    .board-title:hover,.board-title:focus { border-color:var(--line-strong); }
+    .session-meta { display:flex; align-items:center; gap:8px; margin-top:5px; color:var(--muted); font-size:12px; }
+    .session-dot { width:7px; height:7px; border-radius:50%; background:var(--mint); box-shadow:0 0 0 3px color-mix(in srgb,var(--mint) 18%,transparent); }
+    .toolbar { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+    .btn { min-height:38px; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:8px 12px; display:inline-flex; align-items:center; justify-content:center; gap:7px; font-weight:600; line-height:1; box-shadow:0 1px 0 rgba(0,0,0,.03); }
+    .btn:hover { border-color:var(--line-strong); background:var(--surface-2); }
+    .btn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .btn.primary { background:var(--dark); color:#f7f6ef; border-color:var(--dark); }
+    .btn.primary:hover { background:var(--dark-2); }
+    .btn.danger { color:#b54e3f; }
+    .icon-btn { width:36px; padding:0; }
+    .phasebar { display:flex; align-items:center; gap:8px; margin-top:12px; }
+    .phase-label { font:500 11px/1 "IBM Plex Mono",monospace; color:var(--muted); margin-right:3px; }
+    .phase-list { display:flex; flex-wrap:wrap; gap:5px; }
+    .phase { border:0; background:transparent; color:var(--muted); border-radius:99px; padding:7px 11px; font-size:12px; font-weight:600; }
+    .phase.active { color:var(--ink); background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); }
+    .phase.complete { color:var(--ink); }
+    .phase:disabled { cursor:default; opacity:.58; }
+    .phase-index { font-family:"IBM Plex Mono",monospace; font-size:10px; opacity:.7; margin-right:4px; }
+    .phase-help { margin-left:auto; color:var(--muted); font-size:12px; text-align:right; }
+    .workspace { padding:20px 24px 56px; }
+    .status-strip { display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:18px; align-items:center; margin-bottom:17px; }
+    .prompt { font-size:14px; color:var(--muted); }
+    .prompt strong { color:var(--ink); }
+    .tools { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+    .vote-budget { font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); padding:0 3px; }
+    .member-switch { display:inline-flex; align-items:center; gap:4px; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:3px; }
+    .host-badge { padding:5px 6px; border-radius:5px; background:var(--dark); color:#f7f6ef; font:600 9px/1 "IBM Plex Mono",monospace; letter-spacing:.04em; }
+    .host-badge.member { background:var(--surface-2); color:var(--muted); }
+    .member-switch select { min-height:31px; max-width:152px; border:0; background:transparent; padding:0 7px; font-size:12px; font-weight:600; }
+    .member-switch .btn { min-height:31px; padding:6px 8px; border:0; background:var(--surface-2); font-size:11px; }
+    .timer { display:inline-flex; align-items:center; gap:3px; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:3px; }
+    .time-value { min-width:57px; text-align:center; font:500 13px/1 "IBM Plex Mono",monospace; }
+    .timer .icon-btn { width:31px; min-height:31px; border:0; background:transparent; }
+    .timer .icon-btn:hover { background:var(--surface-2); }
+    .board { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:start; }
+    .column { min-width:0; border-top:5px solid var(--tone); background:color-mix(in srgb,var(--surface) 92%,var(--tone-soft)); box-shadow:0 1px 0 var(--line),0 0 0 1px var(--line); border-radius:5px 5px 12px 12px; overflow:hidden; }
+    .column[data-column="went"] { --tone:var(--yellow); --tone-soft:var(--yellow-soft); }
+    .column[data-column="improve"] { --tone:var(--coral); --tone-soft:var(--coral-soft); }
+    .column[data-column="ideas"] { --tone:var(--mint); --tone-soft:var(--mint-soft); }
+    .column.drag-over { box-shadow:0 0 0 3px color-mix(in srgb,var(--tone) 60%,transparent); }
+    .column-head { padding:16px 16px 12px; border-bottom:1px solid var(--line); }
+    .column-title-row { display:flex; align-items:center; gap:10px; }
+    .column-title { margin:0; font-size:17px; letter-spacing:-.015em; }
+    .count { margin-left:auto; font:500 11px/1 "IBM Plex Mono",monospace; color:var(--muted); }
+    .column-prompt { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.4; }
+    .add-note { width:100%; min-height:40px; margin-top:12px; border:1px dashed var(--line-strong); background:transparent; border-radius:7px; text-align:left; padding:9px 11px; color:var(--muted); font-weight:600; }
+    .add-note:hover { color:var(--ink); background:color-mix(in srgb,var(--tone-soft) 38%,transparent); }
+    .notes { min-height:150px; padding:12px; display:grid; align-content:start; gap:10px; }
+    .empty { border:1px dashed var(--line); border-radius:8px; min-height:116px; display:grid; place-items:center; text-align:center; color:var(--muted); padding:20px; font-size:13px; line-height:1.5; }
+    .card { position:relative; border:1px solid color-mix(in srgb,var(--tone) 38%,var(--line)); background:color-mix(in srgb,var(--surface) 70%,var(--tone-soft)); border-radius:8px; padding:13px; box-shadow:0 3px 0 color-mix(in srgb,var(--tone) 20%,transparent); }
+    .card-text { margin:0 30px 13px 0; line-height:1.48; overflow-wrap:anywhere; white-space:pre-wrap; }
+    .card-text.concealed { filter:blur(7px); opacity:.62; user-select:none; pointer-events:none; }
+    .concealed-label { color:var(--muted); font:500 10px/1 "IBM Plex Mono",monospace; }
+    .card-footer { display:flex; align-items:center; gap:8px; min-height:30px; }
+    .vote-btn { border:1px solid color-mix(in srgb,var(--tone) 55%,var(--line)); background:var(--surface); border-radius:99px; min-width:48px; height:30px; padding:0 9px; display:inline-flex; align-items:center; justify-content:center; gap:5px; font:600 12px/1 "IBM Plex Mono",monospace; }
+    .vote-btn:hover { background:var(--tone-soft); }
+    .vote-btn[disabled] { opacity:.45; cursor:not-allowed; }
+    .card-time { margin-left:auto; color:var(--muted); font-size:11px; }
+    .card-menu { position:absolute; top:7px; right:7px; }
+    .card-menu-btn { width:30px; height:30px; border:0; border-radius:6px; background:transparent; color:var(--muted); font-size:20px; line-height:1; }
+    .card-menu-btn:hover { background:color-mix(in srgb,var(--surface) 72%,transparent); color:var(--ink); }
+    .menu-pop { position:absolute; top:33px; right:0; z-index:12; width:170px; padding:5px; border:1px solid var(--line); border-radius:8px; background:var(--surface); box-shadow:var(--shadow); }
+    .menu-pop button { width:100%; border:0; background:transparent; padding:8px 9px; border-radius:5px; text-align:left; font-size:12px; }
+    .menu-pop button:hover { background:var(--surface-2); }
+    .menu-pop .delete { color:#b54e3f; }
+    .workflow { margin:0 0 18px; border:1px solid var(--line); background:var(--surface); border-radius:10px; overflow:hidden; }
+    .stage-list { display:grid; grid-template-columns:repeat(3,1fr); list-style:none; margin:0; padding:0; }
+    .stage-step { position:relative; display:flex; align-items:center; gap:10px; min-width:0; padding:12px 14px; color:var(--muted); border-left:1px solid var(--line); }
+    .stage-step:first-child { border-left:0; }
+    .stage-step b { flex:0 0 26px; width:26px; height:26px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; font:600 11px/1 "IBM Plex Mono",monospace; }
+    .stage-step span { min-width:0; }
+    .stage-step strong,.stage-step small { display:block; }
+    .stage-step strong { color:inherit; font-size:13px; }
+    .stage-step small { margin-top:2px; font-size:11px; line-height:1.3; }
+    .stage-step.active { color:var(--ink); background:color-mix(in srgb,var(--yellow-soft) 40%,var(--surface)); }
+    .stage-step.active b { background:var(--dark); border-color:var(--dark); color:#f7f6ef; }
+    .stage-step.complete b { background:var(--mint); border-color:var(--mint); color:#fff; }
+    .column.inactive { opacity:.56; }
+    .column.future .notes { min-height:100px; }
+    .locked-message { min-height:96px; display:grid; place-items:center; padding:18px; color:var(--muted); text-align:center; font-size:12px; line-height:1.45; }
+    .auto-group-summary { display:flex; align-items:center; gap:9px; margin-bottom:12px; padding:10px 11px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--muted); font-size:12px; line-height:1.4; }
+    .auto-group-mark { flex:0 0 auto; width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:var(--mint-soft); color:var(--ink); font:700 11px/1 "IBM Plex Mono",monospace; }
+    .theme-stack { display:grid; gap:10px; margin-top:12px; }
+    .theme { border:1px solid color-mix(in srgb,var(--tone) 44%,var(--line)); border-radius:9px; background:color-mix(in srgb,var(--surface) 78%,var(--tone-soft)); overflow:hidden; }
+    .theme-head { display:flex; align-items:center; gap:8px; padding:10px 11px; border-bottom:1px solid var(--line); }
+    .theme-title { flex:1; min-width:0; margin:0; font-size:14px; font-weight:700; overflow-wrap:anywhere; }
+    .theme-count { color:var(--muted); font:500 10px/1 "IBM Plex Mono",monospace; white-space:nowrap; }
+    .theme-notes { display:grid; gap:6px; padding:10px 11px; }
+    .theme-note { margin:0; padding-bottom:6px; border-bottom:1px dashed var(--line); font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+    .theme-note:last-child { padding-bottom:0; border-bottom:0; }
+    .theme-title-input { width:100%; min-width:0; border:1px solid transparent; border-radius:5px; background:transparent; padding:5px 6px; margin:-5px -6px; font-size:14px; font-weight:700; }
+    .theme-title-input:hover,.theme-title-input:focus { border-color:var(--line); background:var(--surface); }
+    .regroup-note { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:9px; align-items:center; padding:8px; border:1px solid transparent; border-bottom-color:var(--line); border-radius:6px; }
+    .regroup-note:last-child { border-bottom-color:transparent; }
+    .regroup-note[draggable="true"] { cursor:grab; }
+    .regroup-note[draggable="true"]:active { cursor:grabbing; }
+    .regroup-note.dragging { opacity:.42; }
+    .regroup-note .theme-note { padding:0; border:0; }
+    .drag-cue { color:var(--muted); font:600 9px/1 "IBM Plex Mono",monospace; letter-spacing:.05em; }
+    .theme.drop-target { border-color:var(--tone); box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tone) 45%,transparent); }
+    .move-select { max-width:150px; border:1px solid var(--line); border-radius:6px; background:var(--surface); padding:6px 8px; color:var(--muted); font-size:11px; }
+    .group-tools { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .group-tools .auto-group-summary { flex:1 1 320px; margin:0; }
+    .group-tools .btn { min-height:36px; font-size:12px; }
+    .theme-foot { display:flex; align-items:center; gap:8px; padding:0 11px 10px; }
+    .theme-foot .btn { min-height:32px; padding:6px 9px; font-size:11px; }
+    .theme-votes { margin-left:auto; font:600 12px/1 "IBM Plex Mono",monospace; color:var(--muted); }
+    .theme .vote-btn { margin-left:auto; }
+    .empty.compact { min-height:76px; }
+    .review-intro { margin-bottom:12px; padding:13px 15px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); font-size:13px; line-height:1.5; }
+    .action-section { margin-top:18px; border:1px solid var(--line); background:var(--surface); border-radius:10px; box-shadow:var(--shadow); }
+    .action-head { padding:15px 17px; display:flex; gap:14px; align-items:center; border-bottom:1px solid var(--line); }
+    .action-head h2 { font-size:16px; margin:0; }
+    .action-head p { margin:2px 0 0; color:var(--muted); font-size:12px; }
+    .action-head .btn { margin-left:auto; }
+    .actions { display:grid; }
+    .action-empty { padding:24px 17px; text-align:center; color:var(--muted); font-size:13px; }
+    .action-row { display:grid; grid-template-columns:minmax(0,1fr) 150px 140px auto; gap:10px; align-items:center; padding:12px 16px; border-top:1px solid var(--line); }
+    .action-row:first-child { border-top:0; }
+    .action-row.done .action-copy { text-decoration:line-through; color:var(--muted); }
+    .action-copy { font-weight:600; overflow-wrap:anywhere; }
+    .field { min-width:0; border:1px solid var(--line); border-radius:6px; background:var(--bg); padding:8px 9px; font-size:12px; }
+    .done-btn { white-space:nowrap; }
+    .composer-backdrop,.dialog-backdrop { position:fixed; inset:0; z-index:60; background:rgba(9,13,11,.52); display:grid; place-items:center; padding:18px; }
+    .composer,.dialog { width:min(500px,100%); background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:0 24px 70px rgba(0,0,0,.28); padding:20px; }
+    .composer h2,.dialog h2 { margin:0; font-size:20px; }
+    .composer-sub,.dialog p { margin:6px 0 16px; color:var(--muted); font-size:13px; line-height:1.5; }
+    .setup-fields { display:grid; grid-template-columns:minmax(0,1fr) 150px; gap:12px; }
+    .setup-field { display:grid; gap:6px; color:var(--muted); font-size:12px; font-weight:600; }
+    .setup-field input,.setup-field select { width:100%; min-height:42px; border:1px solid var(--line); border-radius:7px; background:var(--bg); padding:8px 10px; }
+    .composer textarea { width:100%; min-height:130px; resize:vertical; border:1px solid var(--line); border-radius:8px; background:var(--bg); padding:12px; line-height:1.5; }
+    .composer-foot,.dialog-foot { display:flex; justify-content:flex-end; gap:8px; align-items:center; margin-top:12px; }
+    .char-count { margin-right:auto; color:var(--muted); font:500 11px/1 "IBM Plex Mono",monospace; }
+    .toast { position:fixed; left:50%; bottom:max(22px,env(safe-area-inset-bottom)); z-index:100; transform:translateX(-50%) translateY(18px); opacity:0; pointer-events:none; background:var(--dark); color:#f7f6ef; border-radius:7px; padding:10px 14px; font-size:13px; box-shadow:var(--shadow); transition:.18s ease; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    [hidden] { display:none !important; }
+    @media (max-width:820px) { .topbar { padding-left:16px; padding-right:16px; } .topline { align-items:flex-start; flex-wrap:wrap; } .title-wrap { flex-basis:100%; } .toolbar { width:100%; justify-content:flex-start; } .phasebar { align-items:flex-start; } .phase-help { display:none; } .workspace { padding:16px 16px 44px; } .status-strip { grid-template-columns:1fr; gap:10px; } .tools { justify-content:flex-start; } .board { grid-template-columns:1fr; gap:16px; } .column.inactive { display:none; } .notes { min-height:92px; } .action-row { grid-template-columns:1fr 1fr; } .action-copy { grid-column:1/-1; } .done-btn { justify-self:end; } }
+    @media (max-width:600px) { .stage-list { grid-template-columns:1fr; } .stage-step { border-left:0; border-top:1px solid var(--line); padding:9px 12px; } .stage-step:first-child { border-top:0; } .stage-step:not(.active):not(.complete) small { display:none; } }
+    @media (max-width:480px) { body { font-size:14px; } .topbar { position:relative; padding-top:max(12px,env(safe-area-inset-top)); } .board-title { font-size:24px; } .toolbar .text-on-small { display:none; } .toolbar .btn { flex:1; } .toolbar .icon-btn { flex:0 0 38px; } .phasebar { display:block; } .phase-label { display:block; margin:0 0 7px; } .phase-list { display:grid; grid-template-columns:repeat(3,1fr); } .phase { padding:8px 4px; } .phase-index { display:none; } .tools { display:flex; justify-content:stretch; } .vote-budget { width:100%; } .timer { flex:1 1 auto; } .tools>.btn { flex:1 1 auto; } .regroup-note { grid-template-columns:1fr; } .move-select { width:100%; max-width:none; } .action-row { grid-template-columns:1fr; } .action-copy { grid-column:auto; } .done-btn { justify-self:stretch; } .action-head { align-items:flex-start; } .action-head .btn { padding-inline:10px; } .setup-fields { grid-template-columns:1fr; } .composer,.dialog { padding:17px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition-duration:.01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topline">
+        <div class="title-wrap">
+          <input id="boardTitle" class="board-title" value="Sprint retrospective" maxlength="60" aria-label="Board title" />
+          <div class="session-meta"><span class="session-dot"></span><span>Host-led · anonymous</span><span aria-hidden="true">·</span><span id="noteSummary">0 notes</span></div>
+        </div>
+        <div class="toolbar" aria-label="Board tools">
+          <label class="btn" for="fileInput" title="Open a saved board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14"/></svg><span class="text-on-small">Open</span></label>
+          <input id="fileInput" type="file" accept="application/json,.json" hidden />
+          <button class="btn" id="downloadBtn" type="button" title="Download board snapshot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9m0 12 4-4m-4 4-4-4M5 4h14v8"/></svg><span class="text-on-small">Download</span></button>
+          <button class="btn icon-btn danger" id="resetBtn" type="button" title="Reset board" aria-label="Reset board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg></button>
+        </div>
+      </div>
+      <div class="phasebar">
+        <span class="phase-label">TOPIC</span>
+        <div class="phase-list" aria-label="Retrospective topics">
+          <button class="phase active" data-round="0" type="button" disabled><span class="phase-index">01</span>Went well</button>
+          <button class="phase" data-round="1" type="button" disabled><span class="phase-index">02</span>Could improve</button>
+          <button class="phase" data-round="2" type="button" disabled><span class="phase-index">03</span>Try next</button>
+        </div>
+        <div class="phase-help" id="phaseHelp">Round 1 of 3 · Write</div>
+      </div>
+    </header>
+    <main class="workspace">
+      <section class="status-strip" aria-label="Session status">
+        <div class="prompt" id="sessionPrompt"><strong>Write quietly.</strong> Add one concrete thought about what went well.</div>
+        <div class="tools">
+          <div class="member-switch" aria-label="Current anonymous participant">
+            <span class="host-badge" id="roleBadge">HOST</span>
+            <select id="memberSelect" aria-label="Current anonymous participant"></select>
+            <button class="btn" id="addMemberBtn" type="button">+ Member</button>
+          </div>
+          <span class="vote-budget" id="voteBudget" hidden>5 votes left</span>
+          <div class="timer" id="timerBox" aria-label="Writing timer">
+            <span class="time-value" id="timerValue">05:00</span>
+            <button class="btn icon-btn" id="timerToggle" type="button" aria-label="Start timer" title="Start timer"><svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 9 6-9 6z"/></svg></button>
+            <button class="btn icon-btn" id="timerReset" type="button" aria-label="Reset timer" title="Reset timer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg></button>
+          </div>
+          <button class="btn primary" id="advanceBtn" type="button">Finish writing</button>
+        </div>
+      </section>
+      <section class="workflow" aria-label="Steps for this topic">
+        <ol class="stage-list">
+          <li class="stage-step active" data-stage-step="write"><b>1</b><span><strong>Write</strong><small>5 minutes, one thought per note</small></span></li>
+          <li class="stage-step" data-stage-step="group"><b>2</b><span><strong>Group</strong><small>Review and correct automatic themes</small></span></li>
+          <li class="stage-step" data-stage-step="vote"><b>3</b><span><strong>Vote</strong><small>Results reveal after everyone finishes</small></span></li>
+        </ol>
+      </section>
+      <div class="review-intro" id="reviewIntro" hidden><strong>Review the results.</strong> The highest-voted themes appear first. Discuss what matters most, then turn a theme into an owned action.</div>
+      <section class="board" id="board" aria-label="Retrospective board">
+        <article class="column" data-column="went"><div class="column-head"><div class="column-title-row"><h2 class="column-title">Went well</h2><span class="count" data-count="went">0</span></div><p class="column-prompt">What gave the team momentum?</p><button class="add-note" type="button" data-add="went">+ Add a note</button></div><div class="notes" data-notes="went"></div></article>
+        <article class="column" data-column="improve"><div class="column-head"><div class="column-title-row"><h2 class="column-title">Could improve</h2><span class="count" data-count="improve">0</span></div><p class="column-prompt">Where did friction slow us down?</p><button class="add-note" type="button" data-add="improve">+ Add a note</button></div><div class="notes" data-notes="improve"></div></article>
+        <article class="column" data-column="ideas"><div class="column-head"><div class="column-title-row"><h2 class="column-title">Try next</h2><span class="count" data-count="ideas">0</span></div><p class="column-prompt">What small experiment is worth running?</p><button class="add-note" type="button" data-add="ideas">+ Add a note</button></div><div class="notes" data-notes="ideas"></div></article>
+      </section>
+      <section class="action-section" id="actionSection" aria-labelledby="actionsTitle" hidden>
+        <div class="action-head"><div><h2 id="actionsTitle">Action items</h2><p>Turn a theme into a clear next step, then assign an anonymous member and date.</p></div><button class="btn" id="addActionBtn" type="button">+ Add action</button></div>
+        <div class="actions" id="actions"></div>
+      </section>
+    </main>
+  </div>
+  <div class="composer-backdrop" id="composerBackdrop" hidden>
+    <form class="composer" id="composerForm"><h2 id="composerTitle">Add a note</h2><p class="composer-sub" id="composerSub">Keep it specific. One observation per note.</p><textarea id="noteText" maxlength="280" placeholder="Type your thought…" required></textarea><div class="composer-foot"><span class="char-count" id="charCount">0 / 280</span><button class="btn" type="button" id="cancelComposer">Cancel</button><button class="btn primary" type="submit" id="saveNote">Add note</button></div></form>
+  </div>
+  <div class="dialog-backdrop" id="sessionDialog">
+    <form class="dialog" id="sessionForm" role="dialog" aria-modal="true" aria-labelledby="sessionTitleHeading"><h2 id="sessionTitleHeading">Create a retro session</h2><p>You’ll join as the host and Member 1. Every participant stays anonymous on notes, themes, and votes.</p><div class="setup-fields"><label class="setup-field">Session topic<input id="sessionTitleInput" value="Sprint retrospective" maxlength="60" required /></label><label class="setup-field">Anonymous members<select id="sessionMemberCount"><option value="1">1 member</option><option value="2">2 members</option><option value="3" selected>3 members</option><option value="4">4 members</option><option value="5">5 members</option><option value="6">6 members</option><option value="7">7 members</option><option value="8">8 members</option><option value="9">9 members</option><option value="10">10 members</option><option value="11">11 members</option><option value="12">12 members</option></select></label></div><div class="dialog-foot"><label class="btn" for="fileInput">Open saved board</label><button class="btn primary" type="submit">Create session</button></div></form>
+  </div>
+  <div class="dialog-backdrop" id="resetDialog" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="resetTitle"><h2 id="resetTitle">Reset this board?</h2><p>This clears every note, vote, and action item from the current session. Download a snapshot first if you want to keep it.</p><div class="dialog-foot"><button class="btn" type="button" id="cancelReset">Keep board</button><button class="btn primary" type="button" id="confirmReset">Reset</button></div></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (function(){'use strict';
+      var order=['went','improve','ideas'];
+      var columns={
+        went:{title:'Went well',short:'what went well',prompt:'What gave the team momentum?'},
+        improve:{title:'Could improve',short:'what could improve',prompt:'Where did friction slow us down?'},
+        ideas:{title:'Try next',short:'what to try next',prompt:'What small experiment is worth running?'}
+      };
+      var firstMemberId='member-1';
+      var state={title:'Sprint retrospective',currentRound:0,stage:'write',notes:[],groups:[],actions:[],members:[{id:firstMemberId,name:'Member 1'}],hostId:firstMemberId,currentMemberId:firstMemberId,voteCompletions:{},timerSeconds:300,timerRunning:false};
+      var composerMode='note',composerColumn='went',editingId=null,timerHandle=null,toastHandle=null,draggedNoteId=null;
+      var boardTitle=document.getElementById('boardTitle'),composerBackdrop=document.getElementById('composerBackdrop'),composerTitle=document.getElementById('composerTitle'),composerSub=document.getElementById('composerSub'),composerForm=document.getElementById('composerForm'),noteText=document.getElementById('noteText'),charCount=document.getElementById('charCount'),saveNote=document.getElementById('saveNote'),actionsEl=document.getElementById('actions'),toast=document.getElementById('toast');
+      function uid(prefix){return prefix+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);}
+      function escapeHtml(value){return String(value).replace(/[&<>'"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c];});}
+      function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(function(){toast.classList.remove('show');},2400);}
+      function activeKey(){return order[state.currentRound]||null;}
+      function currentMember(){return state.members.find(function(m){return m.id===state.currentMemberId;})||state.members[0];}
+      function isHost(){return state.currentMemberId===state.hostId;}
+      function memberName(id){var member=state.members.find(function(m){return m.id===id;});return member?member.name:'Member';}
+      function memberVotesUsed(key){return groupsFor(key).reduce(function(total,g){return total+Math.max(0,Number(g.votesBy&&g.votesBy[state.currentMemberId])||0);},0);}
+      function groupsFor(key){return state.groups.filter(function(g){return g.column===key;});}
+      function completedVoters(key){return state.voteCompletions&&Array.isArray(state.voteCompletions[key])?state.voteCompletions[key]:[];}
+      function memberFinishedVoting(key,id){return completedVoters(key).indexOf(id)>=0;}
+      function everyoneFinishedVoting(key){return state.members.length>0&&state.members.every(function(member){return memberFinishedVoting(key,member.id);});}
+      function notesForGroup(group){return group.noteIds.map(function(id){return state.notes.find(function(n){return n.id===id;});}).filter(Boolean);}
+      function noteCardHtml(note){
+        return '<article class="card" data-card-id="'+note.id+'" aria-label="Hidden anonymous note"><div class="card-menu"><button class="card-menu-btn" type="button" data-menu="'+note.id+'" aria-label="Note options">···</button><div class="menu-pop" data-menu-pop="'+note.id+'" hidden><button class="delete" type="button" data-action="delete" data-id="'+note.id+'">Delete note</button></div></div><p class="card-text concealed" aria-hidden="true">'+escapeHtml(note.text)+'</p><div class="card-footer"><span class="concealed-label">Anonymous · hidden until grouping</span><span class="card-time">'+escapeHtml(note.created)+'</span></div></article>';
+      }
+      function regroupNotesHtml(group,groups){
+        var host=isHost();
+        return notesForGroup(group).map(function(note){var options=groups.map(function(target){return '<option value="'+target.id+'" '+(target.id===group.id?'selected':'')+'>'+escapeHtml(target.title||'Untitled theme')+'</option>';}).join('');return '<div class="regroup-note" '+(host?'draggable="true" data-drag-note="'+note.id+'"':'')+'>'+(host?'<span class="drag-cue" aria-hidden="true">DRAG</span>':'')+'<p class="theme-note">'+escapeHtml(note.text)+'</p>'+(host?'<select class="move-select" data-move-note="'+note.id+'" data-source-group="'+group.id+'" aria-label="Move anonymous note to another theme">'+options+'<option value="__new__">New theme…</option></select>':'')+'</div>';}).join('');
+      }
+      function themeHtml(group,mode,allGroups){
+        var notes=notesForGroup(group),title=group.title||'Untitled theme',head=mode==='group'&&isHost()?'<input class="theme-title-input" data-group-title="'+group.id+'" value="'+escapeHtml(title)+'" maxlength="80" aria-label="Theme name" />':'<h3 class="theme-title">'+escapeHtml(title)+'</h3>';
+        var foot='',notesHtml=mode==='group'?regroupNotesHtml(group,allGroups||[]):notes.map(function(n){return '<p class="theme-note">'+escapeHtml(n.text)+'</p>';}).join('');
+        if(mode==='vote'){var revealed=everyoneFinishedVoting(group.column),done=memberFinishedVoting(group.column,state.currentMemberId),disabled=done||memberVotesUsed(group.column)>=5;foot=revealed?'<div class="theme-foot"><span class="theme-votes">'+group.votes+(group.votes===1?' vote':' votes')+'</span></div>':'<div class="theme-foot"><span class="theme-votes">'+notes.length+(notes.length===1?' note':' notes')+'</span><button class="vote-btn" type="button" data-vote-group="'+group.id+'" '+(disabled?'disabled':'')+' aria-label="Vote for '+escapeHtml(title)+'"><span aria-hidden="true">▲</span><span>Vote</span></button></div>';}
+        if(mode==='summary')foot='<div class="theme-foot"><span class="theme-votes">'+group.votes+(group.votes===1?' vote':' votes')+'</span></div>';
+        if(mode==='review')foot='<div class="theme-foot"><button class="btn" type="button" data-group-action="'+group.id+'">+ Make action</button><span class="theme-votes">'+group.votes+(group.votes===1?' vote':' votes')+'</span></div>';
+        return '<section class="theme" data-theme="'+group.id+'"><div class="theme-head">'+head+'<span class="theme-count">'+notes.length+'</span></div><div class="theme-notes">'+notesHtml+'</div>'+foot+'</section>';
+      }
+      function groupStageHtml(key){
+        var groups=groupsFor(key);
+        if(!groups.length)return '<div class="empty">No notes to group for this topic.</div>';
+        var guidance=isHost()?'<strong>Automatic grouping complete.</strong> As host, drag notes between themes, rename themes, or create a new one.':'<strong>The host is reviewing themes.</strong> Notes remain anonymous while the host corrects the grouping.';
+        return '<div class="group-tools"><div class="auto-group-summary"><span class="auto-group-mark">✓</span><span>'+guidance+'</span></div>'+(isHost()?'<button class="btn" type="button" data-new-theme="'+key+'">+ New theme</button>':'')+'</div><div class="theme-stack">'+groups.map(function(g){return themeHtml(g,'group',groups);}).join('')+'</div>';
+      }
+      function renderColumn(key,index){
+        var list=document.querySelector('[data-notes="'+key+'"]'),notes=state.notes.filter(function(n){return n.column===key;}),column=document.querySelector('.column[data-column="'+key+'"]'),add=document.querySelector('[data-add="'+key+'"]'),review=state.stage==='review',active=index===state.currentRound;
+        document.querySelector('[data-count="'+key+'"]').textContent=notes.length;
+        column.classList.toggle('inactive',!review&&!active);column.classList.toggle('future',!review&&index>state.currentRound);
+        add.hidden=!(active&&state.stage==='write');
+        if(review){var reviewGroups=groupsFor(key).slice().sort(function(a,b){return b.votes-a.votes;});list.innerHTML=reviewGroups.length?reviewGroups.map(function(g){return themeHtml(g,'review');}).join(''):'<div class="empty">No themes were created for this topic.</div>';return;}
+        if(index<state.currentRound){var completed=groupsFor(key).slice().sort(function(a,b){return b.votes-a.votes;});list.innerHTML=completed.length?completed.map(function(g){return themeHtml(g,'summary');}).join(''):'<div class="locked-message">This topic is complete.</div>';return;}
+        if(index>state.currentRound){list.innerHTML='<div class="locked-message">Finish '+columns[activeKey()].title+' before starting this topic.</div>';return;}
+        if(state.stage==='write')list.innerHTML=notes.length?notes.map(noteCardHtml).join(''):'<div class="empty">No notes yet.<br>Start with one honest observation.</div>';
+        if(state.stage==='group')list.innerHTML=groupStageHtml(key);
+        if(state.stage==='vote'){var votingGroups=groupsFor(key).slice(),revealed=everyoneFinishedVoting(key);if(revealed)votingGroups.sort(function(a,b){return b.votes-a.votes;});list.innerHTML=votingGroups.length?votingGroups.map(function(g){return themeHtml(g,'vote');}).join(''):'<div class="empty">No themes to vote on.</div>';}
+      }
+      function render(){
+        boardTitle.value=state.title;document.getElementById('noteSummary').textContent=state.notes.length+(state.notes.length===1?' note':' notes');
+        var review=state.stage==='review',key=activeKey();
+        document.querySelectorAll('[data-round]').forEach(function(b){var i=Number(b.dataset.round);b.classList.toggle('active',!review&&i===state.currentRound);b.classList.toggle('complete',review||i<state.currentRound);});
+        document.getElementById('phaseHelp').textContent=review?'All topics complete · Review & act':'Round '+(state.currentRound+1)+' of 3 · '+(state.stage==='write'?'Write':state.stage==='group'?'Group':'Vote');
+        document.querySelector('.workflow').hidden=review;document.getElementById('reviewIntro').hidden=!review;document.getElementById('actionSection').hidden=!review;
+        document.querySelectorAll('[data-stage-step]').forEach(function(step){var stages=['write','group','vote'],i=stages.indexOf(step.dataset.stageStep),current=stages.indexOf(state.stage);step.classList.toggle('active',step.dataset.stageStep===state.stage);step.classList.toggle('complete',current>i);});
+        var prompt=document.getElementById('sessionPrompt');
+        if(review)prompt.innerHTML='<strong>Discuss the strongest themes.</strong> Turn the decisions into clear actions with owners and dates.';
+        else if(state.stage==='write')prompt.innerHTML='<strong>Write quietly.</strong> Add one concrete thought about '+columns[key].short+'.';
+        else if(state.stage==='group')prompt.innerHTML=isHost()?'<strong>Review the automatic groups.</strong> Drag anonymous notes between themes before voting starts.':'<strong>Grouping in progress.</strong> The host is correcting themes before voting starts.';
+        else if(everyoneFinishedVoting(key))prompt.innerHTML='<strong>Voting complete.</strong> Results are revealed; highest-voted themes appear first.';
+        else prompt.innerHTML='<strong>Vote privately.</strong> Totals stay hidden until every anonymous member finishes.';
+        var memberSelect=document.getElementById('memberSelect');memberSelect.innerHTML=state.members.map(function(m){var finished=state.stage==='vote'&&memberFinishedVoting(key,m.id),label=(m.id===state.hostId?'Host · ':'')+m.name;return '<option value="'+m.id+'" '+(m.id===state.currentMemberId?'selected':'')+'>'+escapeHtml(label)+(finished?' · done':'')+'</option>';}).join('');
+        var roleBadge=document.getElementById('roleBadge');roleBadge.textContent=isHost()?'HOST':'MEMBER';roleBadge.classList.toggle('member',!isHost());document.getElementById('addMemberBtn').disabled=!isHost();
+        var budget=document.getElementById('voteBudget'),remaining=key?Math.max(0,5-memberVotesUsed(key)):0;budget.hidden=state.stage!=='vote'||everyoneFinishedVoting(key);budget.textContent=memberFinishedVoting(key,state.currentMemberId)?currentMember().name+': voting submitted':currentMember().name+': '+remaining+(remaining===1?' vote left':' votes left');
+        document.getElementById('timerBox').hidden=!(state.stage==='write'||review);document.getElementById('timerToggle').disabled=!isHost();document.getElementById('timerReset').disabled=!isHost();
+        var advance=document.getElementById('advanceBtn'),allVoted=key&&everyoneFinishedVoting(key),currentDone=key&&memberFinishedVoting(key,state.currentMemberId);advance.hidden=review;advance.disabled=false;if(state.stage==='write'){advance.textContent=isHost()?'Finish writing':'Waiting for host';advance.disabled=!isHost();}else if(state.stage==='group'){advance.textContent=isHost()?'Start voting':'Waiting for host';advance.disabled=!isHost();}else if(allVoted){advance.textContent=isHost()?(state.currentRound<2?'Next topic':'Review results'):'Waiting for host';advance.disabled=!isHost();}else{advance.textContent=currentDone?'Voting submitted':'Finish my voting';advance.disabled=currentDone;}
+        order.forEach(renderColumn);actionsEl.innerHTML=state.actions.length?state.actions.map(actionHtml).join(''):'<div class="action-empty">No actions yet. Make one from a theme or add one directly.</div>';renderTimer();
+      }
+      function actionHtml(a){var owners='<option value="">Unassigned</option>'+state.members.map(function(member){return '<option value="'+member.id+'" '+(a.owner===member.id?'selected':'')+'>'+escapeHtml((member.id===state.hostId?'Host · ':'')+member.name)+'</option>';}).join('');return '<div class="action-row '+(a.done?'done':'')+'" data-action-row="'+a.id+'"><div class="action-copy">'+escapeHtml(a.text)+'</div><select class="field" data-action-owner="'+a.id+'" aria-label="Anonymous action owner">'+owners+'</select><input class="field" type="date" data-action-date="'+a.id+'" value="'+escapeHtml(a.date||'')+'" aria-label="Due date" /><button class="btn done-btn" type="button" data-action-done="'+a.id+'">'+(a.done?'Reopen':'Mark done')+'</button></div>';}
+      function openComposer(column,mode,id){
+        composerMode=mode||'note';composerColumn=column||activeKey()||'went';editingId=id||null;var existing=editingId?state.notes.find(function(n){return n.id===editingId;}):null;
+        if(composerMode==='action'){composerTitle.textContent='Add an action';composerSub.textContent='Write one concrete next step. You can assign it after adding.';saveNote.textContent='Add action';}
+        else if(existing){composerTitle.textContent='Edit note';composerSub.textContent=columns[existing.column].prompt;saveNote.textContent='Save changes';}
+        else{composerTitle.textContent='Add to '+columns[composerColumn].title;composerSub.textContent=columns[composerColumn].prompt;saveNote.textContent='Add note';}
+        noteText.value=existing?existing.text:'';charCount.textContent=noteText.value.length+' / 280';composerBackdrop.hidden=false;document.body.style.overflow='hidden';setTimeout(function(){noteText.focus();},0);
+      }
+      function closeComposer(){composerBackdrop.hidden=true;document.body.style.overflow='';noteText.value='';editingId=null;}
+      function addAction(text){state.actions.push({id:uid('action'),text:text.trim(),owner:'',date:'',done:false});render();showToast('Action item added');}
+      function formatTime(seconds){return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
+      function renderTimer(){document.getElementById('timerValue').textContent=formatTime(state.timerSeconds);var b=document.getElementById('timerToggle');b.setAttribute('aria-label',state.timerRunning?'Pause timer':'Start timer');b.setAttribute('title',state.timerRunning?'Pause timer':'Start timer');document.getElementById('playIcon').innerHTML=state.timerRunning?'<path d="M9 6v12M15 6v12"/>':'<path d="m9 6 9 6-9 6z"/>';}
+      function stopTimer(){clearInterval(timerHandle);state.timerRunning=false;}
+      function finishWriting(){
+        var key=activeKey(),result=autoGroupNotes(key);state.stage='group';render();showToast((state.timerSeconds===0?'Time is up — ':'')+'grouped '+result.notes+' '+(result.notes===1?'note':'notes')+' into '+result.groups+' '+(result.groups===1?'theme':'themes'));
+      }
+      function toggleTimer(){state.timerRunning=!state.timerRunning;if(state.timerRunning){timerHandle=setInterval(function(){if(state.timerSeconds>0){state.timerSeconds--;renderTimer();}else{stopTimer();renderTimer();if(state.stage==='write')finishWriting();else showToast('Discussion time is up');}},1000);}else clearInterval(timerHandle);renderTimer();}
+      function resetTimer(){stopTimer();state.timerSeconds=state.stage==='review'?600:300;renderTimer();}
+      var groupingCategories=[
+        {key:'delivery',title:'Delivery & releases',words:['deploy','deployment','release','rollout','ship','shipping','pipeline','ci','cd']},
+        {key:'communication',title:'Communication & alignment',words:['communicate','communication','alignment','align','update','handoff','visibility']},
+        {key:'meetings',title:'Meetings & ceremonies',words:['meeting','standup','retro','sync','ceremony']},
+        {key:'testing',title:'Testing & quality',words:['test','testing','qa','flaky','regression','bug','bugs','defect','quality']},
+        {key:'planning',title:'Planning & scope',words:['plan','planning','scope','estimate','estimation','priority','priorities','requirement','requirements']},
+        {key:'reliability',title:'Reliability & operations',words:['reliability','incident','outage','oncall','alert','monitoring','stability','latency','performance']},
+        {key:'documentation',title:'Documentation & knowledge',words:['docs','documentation','document','runbook','knowledge']},
+        {key:'collaboration',title:'Collaboration & support',words:['collaboration','collaborate','pairing','teamwork','support','unblock','review','feedback']}
+      ];
+      var groupingStopWords={a:1,an:1,and:1,are:1,as:1,at:1,be:1,been:1,but:1,by:1,can:1,could:1,did:1,do:1,does:1,for:1,from:1,had:1,has:1,have:1,helped:1,how:1,i:1,in:1,is:1,it:1,more:1,need:1,next:1,not:1,of:1,on:1,our:1,should:1,so:1,that:1,the:1,their:1,them:1,there:1,they:1,this:1,to:1,too:1,us:1,was:1,we:1,well:1,were:1,what:1,when:1,with:1,would:1};
+      function stemWord(word){if(word.length>5&&word.slice(-3)==='ing')word=word.slice(0,-3);else if(word.length>4&&word.slice(-2)==='ed')word=word.slice(0,-2);else if(word.length>4&&word.slice(-3)==='ies')word=word.slice(0,-3)+'y';else if(word.length>4&&word.slice(-1)==='s'&&word.slice(-2)!=='ss')word=word.slice(0,-1);return word;}
+      function groupingTokens(text){
+        var raw=String(text).toLowerCase().match(/[a-z0-9]+/g)||[],tokens=[];
+        raw.forEach(function(word){if(word.length<3||groupingStopWords[word])return;var stem=stemWord(word),category=groupingCategories.find(function(c){return c.words.indexOf(word)>=0||c.words.indexOf(stem)>=0;});var token=category?'@'+category.key:stem;if(tokens.indexOf(token)<0)tokens.push(token);});return tokens;
+      }
+      function automaticThemeTitle(noteGroup,tokenSets){
+        if(noteGroup.length===1){var text=noteGroup[0].text.trim();return text.length>56?text.slice(0,53)+'…':text;}
+        var counts={};noteGroup.forEach(function(note){tokenSets[note.id].forEach(function(token){counts[token]=(counts[token]||0)+1;});});
+        var shared=Object.keys(counts).filter(function(token){return counts[token]>1;}).sort(function(a,b){return counts[b]-counts[a]||a.localeCompare(b);});
+        var categoryToken=shared.find(function(token){return token.charAt(0)==='@';});if(categoryToken){var category=groupingCategories.find(function(c){return '@'+c.key===categoryToken;});if(category)return category.title;}
+        var words=shared.filter(function(token){return token.charAt(0)!=='@';}).slice(0,2).map(function(token){return token.charAt(0).toUpperCase()+token.slice(1);});return words.length?words.join(' & '):'Related observations';
+      }
+      function autoGroupNotes(key){
+        var notes=state.notes.filter(function(n){return n.column===key;}),tokenSets={},frequency={};
+        notes.forEach(function(note){tokenSets[note.id]=groupingTokens(note.text);tokenSets[note.id].forEach(function(token){frequency[token]=(frequency[token]||0)+1;});});
+        var parent=notes.map(function(_,i){return i;});function root(i){while(parent[i]!==i){parent[i]=parent[parent[i]];i=parent[i];}return i;}function join(a,b){a=root(a);b=root(b);if(a!==b)parent[b]=a;}
+        for(var i=0;i<notes.length;i++)for(var j=i+1;j<notes.length;j++){
+          var left=tokenSets[notes[i].id],right=tokenSets[notes[j].id],shared=left.filter(function(token){return right.indexOf(token)>=0;}),categoryMatch=shared.some(function(token){return token.charAt(0)==='@';}),rareMatch=shared.some(function(token){return token.charAt(0)!=='@'&&token.length>=5&&frequency[token]<=Math.max(2,Math.ceil(notes.length*.45));});
+          if(categoryMatch||shared.length>=2||rareMatch)join(i,j);
+        }
+        var clusters={};notes.forEach(function(note,index){var r=root(index);if(!clusters[r])clusters[r]=[];clusters[r].push(note);});
+        state.groups=state.groups.filter(function(g){return g.column!==key;});Object.keys(clusters).sort(function(a,b){return Number(a)-Number(b);}).forEach(function(clusterKey){var cluster=clusters[clusterKey];state.groups.push({id:uid('group'),column:key,title:automaticThemeTitle(cluster,tokenSets),noteIds:cluster.map(function(n){return n.id;}),votes:0,votesBy:{}});});
+        return{notes:notes.length,groups:Object.keys(clusters).length};
+      }
+      function advanceStage(){
+        if((state.stage==='write'||state.stage==='group'||(state.stage==='vote'&&everyoneFinishedVoting(activeKey())))&&!isHost()){showToast('Only the host can move the session forward');return;}
+        stopTimer();
+        if(state.stage==='write'){finishWriting();return;}
+        if(state.stage==='group'){state.groups=state.groups.filter(function(g){return g.column!==activeKey()||g.noteIds.length;});state.stage='vote';render();showToast('Themes are ready — vote totals stay hidden until everyone finishes');return;}
+        if(state.stage==='vote'&&!everyoneFinishedVoting(activeKey())){var key=activeKey();if(!state.voteCompletions[key])state.voteCompletions[key]=[];if(state.voteCompletions[key].indexOf(state.currentMemberId)<0)state.voteCompletions[key].push(state.currentMemberId);var next=state.members.find(function(member){return !memberFinishedVoting(key,member.id);});if(next)state.currentMemberId=next.id;else state.currentMemberId=state.hostId;render();showToast(next?'Voting submitted — '+next.name+' is next':'Everyone finished — results revealed to the host');return;}
+        if(state.stage==='vote'&&state.currentRound<2){state.currentRound++;state.stage='write';state.timerSeconds=300;render();showToast('Next topic: '+columns[activeKey()].title);window.scrollTo({top:0,behavior:'smooth'});return;}
+        state.currentRound=3;state.stage='review';state.timerSeconds=600;render();showToast('All topics complete — review the results');window.scrollTo({top:0,behavior:'smooth'});
+      }
+      document.querySelectorAll('[data-add]').forEach(function(b){b.addEventListener('click',function(){if(state.stage==='write'&&b.dataset.add===activeKey())openComposer(b.dataset.add,'note');});});
+      composerForm.addEventListener('submit',function(e){e.preventDefault();var text=noteText.value.trim();if(!text)return;if(composerMode==='action')addAction(text);else if(editingId){var existing=state.notes.find(function(n){return n.id===editingId;});if(existing)existing.text=text;render();showToast('Note updated');}else{state.notes.unshift({id:uid('note'),column:composerColumn,text:text,votes:0,authorId:state.currentMemberId,created:'just now'});render();showToast('Note added');}closeComposer();});
+      noteText.addEventListener('input',function(){charCount.textContent=noteText.value.length+' / 280';});document.getElementById('cancelComposer').addEventListener('click',closeComposer);composerBackdrop.addEventListener('click',function(e){if(e.target===composerBackdrop)closeComposer();});
+      document.getElementById('advanceBtn').addEventListener('click',advanceStage);
+      document.getElementById('board').addEventListener('click',function(e){
+        var mb=e.target.closest('[data-menu]');if(mb){var target=document.querySelector('[data-menu-pop="'+mb.dataset.menu+'"]');document.querySelectorAll('.menu-pop').forEach(function(m){if(m!==target)m.hidden=true;});target.hidden=!target.hidden;return;}
+        var newTheme=e.target.closest('[data-new-theme]');if(newTheme&&state.stage==='group'&&isHost()){var fresh={id:uid('group'),column:newTheme.dataset.newTheme,title:'New theme',noteIds:[],votes:0,votesBy:{}};state.groups.push(fresh);render();var input=document.querySelector('[data-group-title="'+fresh.id+'"]');if(input){input.focus();input.select();}return;}
+        var vote=e.target.closest('[data-vote-group]');if(vote&&state.stage==='vote'&&!memberFinishedVoting(activeKey(),state.currentMemberId)){var group=state.groups.find(function(g){return g.id===vote.dataset.voteGroup;});if(group&&memberVotesUsed(group.column)<5){if(!group.votesBy)group.votesBy={};group.votesBy[state.currentMemberId]=(group.votesBy[state.currentMemberId]||0)+1;group.votes++;render();}return;}
+        var groupAction=e.target.closest('[data-group-action]');if(groupAction){var source=state.groups.find(function(g){return g.id===groupAction.dataset.groupAction;});if(source)addAction(source.title||'Follow up on theme');return;}
+        var action=e.target.closest('[data-action]');if(!action)return;var note=state.notes.find(function(n){return n.id===action.dataset.id;});if(!note)return;if(action.dataset.action==='edit')openComposer(note.column,'note',note.id);if(action.dataset.action==='delete'){state.notes=state.notes.filter(function(n){return n.id!==note.id;});state.groups.forEach(function(g){g.noteIds=g.noteIds.filter(function(id){return id!==note.id;});});state.groups=state.groups.filter(function(g){return g.noteIds.length;});render();showToast('Note deleted');}
+      });
+      document.getElementById('board').addEventListener('input',function(e){var id=e.target.dataset.groupTitle;if(!id||state.stage!=='group'||!isHost())return;var group=state.groups.find(function(g){return g.id===id;});if(group)group.title=e.target.value.slice(0,80);});
+      function moveNoteToGroup(noteId,targetId){var source=state.groups.find(function(g){return g.noteIds.indexOf(noteId)>=0;}),target=state.groups.find(function(g){return g.id===targetId;});if(!source||!target||target.column!==source.column||target.id===source.id)return false;source.noteIds=source.noteIds.filter(function(id){return id!==noteId;});if(target.noteIds.indexOf(noteId)<0)target.noteIds.push(noteId);state.groups=state.groups.filter(function(g){return g.column!==source.column||g.noteIds.length||g.id===target.id;});return true;}
+      document.getElementById('board').addEventListener('change',function(e){var noteId=e.target.dataset.moveNote;if(!noteId||state.stage!=='group'||!isHost())return;var source=state.groups.find(function(g){return g.noteIds.indexOf(noteId)>=0;}),targetId=e.target.value,target=state.groups.find(function(g){return g.id===targetId;});if(!source)return;if(targetId==='__new__'){target={id:uid('group'),column:source.column,title:'New theme',noteIds:[],votes:0,votesBy:{}};state.groups.push(target);targetId=target.id;}if(moveNoteToGroup(noteId,targetId)){render();showToast('Anonymous note moved to '+(target.title||'new theme'));}});
+      document.getElementById('board').addEventListener('dragstart',function(e){var note=e.target.closest('[data-drag-note]');if(!note||state.stage!=='group'||!isHost()){e.preventDefault();return;}draggedNoteId=note.dataset.dragNote;note.classList.add('dragging');if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',draggedNoteId);}});
+      document.getElementById('board').addEventListener('dragover',function(e){var theme=e.target.closest('[data-theme]');if(!theme||!draggedNoteId||state.stage!=='group'||!isHost())return;e.preventDefault();document.querySelectorAll('.theme.drop-target').forEach(function(el){if(el!==theme)el.classList.remove('drop-target');});theme.classList.add('drop-target');if(e.dataTransfer)e.dataTransfer.dropEffect='move';});
+      document.getElementById('board').addEventListener('drop',function(e){var theme=e.target.closest('[data-theme]');if(!theme||!draggedNoteId||state.stage!=='group'||!isHost())return;e.preventDefault();var noteId=draggedNoteId;draggedNoteId=null;document.querySelectorAll('.theme.drop-target').forEach(function(el){el.classList.remove('drop-target');});if(moveNoteToGroup(noteId,theme.dataset.theme)){var target=state.groups.find(function(g){return g.id===theme.dataset.theme;});render();showToast('Anonymous note moved to '+(target&&target.title||'theme'));}});
+      document.getElementById('board').addEventListener('dragend',function(){draggedNoteId=null;document.querySelectorAll('.regroup-note.dragging,.theme.drop-target').forEach(function(el){el.classList.remove('dragging','drop-target');});});
+      actionsEl.addEventListener('input',function(e){var id=e.target.dataset.actionOwner||e.target.dataset.actionDate;if(!id)return;var a=state.actions.find(function(x){return x.id===id;});if(!a)return;if(e.target.dataset.actionOwner)a.owner=e.target.value;if(e.target.dataset.actionDate)a.date=e.target.value;});
+      actionsEl.addEventListener('click',function(e){var b=e.target.closest('[data-action-done]');if(!b)return;var a=state.actions.find(function(x){return x.id===b.dataset.actionDone;});if(a){a.done=!a.done;render();showToast(a.done?'Action completed':'Action reopened');}});
+      document.getElementById('addActionBtn').addEventListener('click',function(){openComposer(null,'action');});
+      var sessionDialog=document.getElementById('sessionDialog');document.getElementById('sessionForm').addEventListener('submit',function(e){e.preventDefault();stopTimer();var count=Math.min(12,Math.max(1,Number(document.getElementById('sessionMemberCount').value)||1)),title=document.getElementById('sessionTitleInput').value.trim()||'Sprint retrospective',members=[];for(var i=0;i<count;i++)members.push({id:i===0?'member-1':uid('member'),name:'Member '+(i+1)});state={title:title,currentRound:0,stage:'write',notes:[],groups:[],actions:[],members:members,hostId:members[0].id,currentMemberId:members[0].id,voteCompletions:{},timerSeconds:300,timerRunning:false};sessionDialog.hidden=true;render();showToast('Session created · you are the host and Member 1');});
+      document.getElementById('memberSelect').addEventListener('change',function(e){state.currentMemberId=e.target.value;render();showToast((isHost()?'Host selected':'Anonymous participant selected')+' · '+currentMember().name);});
+      document.getElementById('addMemberBtn').addEventListener('click',function(){if(!isHost()){showToast('Only the host can add participants');return;}var member={id:uid('member'),name:'Member '+(state.members.length+1)};state.members.push(member);state.currentMemberId=member.id;render();showToast('Anonymous '+member.name+' added and selected');});
+      boardTitle.addEventListener('input',function(){state.title=boardTitle.value;});boardTitle.addEventListener('blur',function(){if(!boardTitle.value.trim()){state.title='Sprint retrospective';boardTitle.value=state.title;}else{state.title=boardTitle.value.trim();boardTitle.value=state.title;}});
+      document.getElementById('timerToggle').addEventListener('click',function(){if(isHost())toggleTimer();});document.getElementById('timerReset').addEventListener('click',function(){if(isHost())resetTimer();});
+      document.getElementById('downloadBtn').addEventListener('click',function(){state.title=boardTitle.value.trim()||'Sprint retrospective';var snapshot={kind:'retro-board-snapshot',version:4,exportedAt:new Date().toISOString(),title:state.title,currentRound:state.currentRound,stage:state.stage,notes:state.notes,groups:state.groups,actions:state.actions,members:state.members,hostId:state.hostId,currentMemberId:state.currentMemberId,voteCompletions:state.voteCompletions},blob=new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(state.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'retro-board')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},500);showToast('Board snapshot downloaded');});
+      document.getElementById('fileInput').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{var data=JSON.parse(reader.result);if(data.kind!=='retro-board-snapshot'||!Array.isArray(data.notes)||!Array.isArray(data.actions))throw new Error('Invalid board');var memberMap={},members=Array.isArray(data.members)&&data.members.length?data.members.slice(0,30).map(function(m,i){var id=uid('member');memberMap[m.id]=id;return{id:id,name:'Member '+(i+1)};}):[{id:uid('member'),name:'Member 1'}];var idMap={};var notes=data.notes.filter(function(n){return n&&columns[n.column]&&typeof n.text==='string';}).map(function(n){var id=uid('note');idMap[n.id]=id;return{id:id,column:n.column,text:n.text.slice(0,280),votes:0,authorId:memberMap[n.authorId]||members[0].id,created:String(n.created||'imported').slice(0,40)};});var groups=Array.isArray(data.groups)?data.groups.filter(function(g){return g&&columns[g.column]&&Array.isArray(g.noteIds);}).map(function(g){var votesBy={};if(g.votesBy)Object.keys(g.votesBy).forEach(function(oldId){if(memberMap[oldId])votesBy[memberMap[oldId]]=Math.max(0,Number(g.votesBy[oldId])||0);});return{id:uid('group'),column:g.column,title:String(g.title||'Untitled theme').slice(0,80),noteIds:g.noteIds.map(function(id){return idMap[id];}).filter(Boolean),votes:Math.max(0,Number(g.votes)||0),votesBy:votesBy};}).filter(function(g){return g.noteIds.length;}):[];var round=Math.min(3,Math.max(0,Number(data.currentRound)||0)),stage=['write','group','vote','review'].indexOf(data.stage)>=0?data.stage:'write',voteCompletions={};order.forEach(function(key){var saved=data.voteCompletions&&Array.isArray(data.voteCompletions[key])?data.voteCompletions[key]:[];voteCompletions[key]=saved.map(function(oldId){return memberMap[oldId];}).filter(Boolean);});if(round===3)stage='review';if(round<3&&stage==='review')stage='write';state={title:String(data.title||'Sprint retrospective').slice(0,60),currentRound:round,stage:stage,notes:notes,groups:groups,actions:data.actions.filter(function(a){return a&&typeof a.text==='string';}).map(function(a){return{id:uid('action'),text:a.text.slice(0,280),owner:memberMap[a.owner]||'',date:/^\d{4}-\d{2}-\d{2}$/.test(String(a.date||''))?String(a.date):'',done:Boolean(a.done)};}),members:members,hostId:memberMap[data.hostId]||members[0].id,currentMemberId:memberMap[data.currentMemberId]||members[0].id,voteCompletions:voteCompletions,timerSeconds:stage==='review'?600:300,timerRunning:false};if(state.stage==='group')autoGroupNotes(activeKey());stopTimer();sessionDialog.hidden=true;render();showToast('Board snapshot opened');}catch(err){showToast('That file is not a Retro Board snapshot');}e.target.value='';};reader.readAsText(file);});
+      var resetDialog=document.getElementById('resetDialog');document.getElementById('resetBtn').addEventListener('click',function(){resetDialog.hidden=false;});document.getElementById('cancelReset').addEventListener('click',function(){resetDialog.hidden=true;});document.getElementById('confirmReset').addEventListener('click',function(){stopTimer();var memberId='member-1';state={title:'Sprint retrospective',currentRound:0,stage:'write',notes:[],groups:[],actions:[],members:[{id:memberId,name:'Member 1'}],hostId:memberId,currentMemberId:memberId,voteCompletions:{},timerSeconds:300,timerRunning:false};resetDialog.hidden=true;document.getElementById('sessionTitleInput').value='Sprint retrospective';document.getElementById('sessionMemberCount').value='3';sessionDialog.hidden=false;render();showToast('Board reset · create a new session');});resetDialog.addEventListener('click',function(e){if(e.target===resetDialog)resetDialog.hidden=true;});
+      document.addEventListener('click',function(e){if(!e.target.closest('.card-menu'))document.querySelectorAll('.menu-pop').forEach(function(m){m.hidden=true;});});document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!composerBackdrop.hidden)closeComposer();resetDialog.hidden=true;document.querySelectorAll('.menu-pop').forEach(function(m){m.hidden=true;});}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&state.stage==='write'){e.preventDefault();openComposer(activeKey(),'note');}});
+      render();
+    })();
+  </script>
+</body>
+</html>
