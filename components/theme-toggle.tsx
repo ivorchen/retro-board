@@ -17,12 +17,14 @@ export function ThemeToggle() {
   const dark = mounted && resolvedTheme === "dark";
   return (
     <Button
+      variant="outline"
       size="icon"
       onClick={() => setTheme(dark ? "light" : "dark")}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      className="glass-btn"
     >
-      {dark ? <Sun size={16} /> : <Moon size={16} />}
+      {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );
 }

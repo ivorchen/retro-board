@@ -4,8 +4,16 @@ import * as React from "react";
 import type { RetroBoard } from "@/hooks/use-retro-board";
 import { COLUMNS, NOTE_MAX } from "@/lib/types";
 import { Button } from "./ui/button";
-import { Dialog, DialogDescription, DialogFooter, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 
 /* ---------------- Note / action composer ---------------- */
@@ -27,8 +35,6 @@ export function ComposerDialog({ board }: { board: RetroBoard }) {
     }
   }, [composer.open, composer.editingId, board.state.notes]);
 
-  if (!composer.open) return null;
-
   let title = "";
   let sub = "";
   let saveLabel = "";
@@ -48,39 +54,44 @@ export function ComposerDialog({ board }: { board: RetroBoard }) {
   }
 
   return (
-    <div className="composer-backdrop" onClick={(e) => {
-      if (e.target === e.currentTarget) board.closeComposer();
-    }}>
-      <form
-        className="composer"
-        onSubmit={(e) => {
-          e.preventDefault();
-          board.submitComposer(text);
-        }}
-      >
-        <h2>{title}</h2>
-        <p className="composer-sub">{sub}</p>
-        <Textarea
-          ref={areaRef}
-          value={text}
-          maxLength={NOTE_MAX}
-          placeholder="Type your thought…"
-          required
-          onChange={(e) => setText(e.target.value)}
-        />
-        <div className="composer-foot">
-          <span className="char-count">
-            {text.length} / {NOTE_MAX}
-          </span>
-          <Button type="button" onClick={board.closeComposer}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary">
-            {saveLabel}
-          </Button>
-        </div>
-      </form>
-    </div>
+    <Dialog
+      open={composer.open}
+      onOpenChange={(open) => {
+        if (!open) board.closeComposer();
+      }}
+    >
+      <DialogContent className="glass-strong rounded-3xl sm:max-w-[500px]">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            board.submitComposer(text);
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-xl">{title}</DialogTitle>
+            <DialogDescription>{sub}</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            ref={areaRef}
+            value={text}
+            maxLength={NOTE_MAX}
+            placeholder="Type your thought…"
+            required
+            onChange={(e) => setText(e.target.value)}
+            className="glass-soft min-h-[130px] resize-y rounded-2xl leading-relaxed"
+          />
+          <DialogFooter className="mt-3 items-center">
+            <span className="mr-auto font-mono text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {text.length} / {NOTE_MAX}
+            </span>
+            <Button type="button" variant="outline" onClick={board.closeComposer}>
+              Cancel
+            </Button>
+            <Button type="submit">{saveLabel}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -100,56 +111,61 @@ export function SessionDialog({ board }: { board: RetroBoard }) {
   }, [board.sessionOpen]);
 
   return (
-    <Dialog
-      open={board.sessionOpen}
-      onClose={() => {}}
-      labelledBy="sessionTitleHeading"
-    >
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          board.createSession(title, count);
-        }}
+    <Dialog open={board.sessionOpen} onOpenChange={() => {}}>
+      <DialogContent
+        className="glass-strong rounded-3xl sm:max-w-[500px] [&>button]:hidden"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogTitle id="sessionTitleHeading">Create a retro session</DialogTitle>
-        <DialogDescription>
-          You’ll join as the host and Member 1. Every participant stays anonymous
-          on notes, themes, and votes.
-        </DialogDescription>
-        <div className="setup-fields">
-          <label className="setup-field">
-            Session topic
-            <Input
-              value={title}
-              maxLength={60}
-              required
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </label>
-          <label className="setup-field">
-            Anonymous members
-            <select
-              className="field"
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-            >
-              {MEMBER_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n} {n === 1 ? "member" : "members"}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <DialogFooter>
-          <label className="btn" htmlFor="board-file-input">
-            Open saved board
-          </label>
-          <Button type="submit" variant="primary">
-            Create session
-          </Button>
-        </DialogFooter>
-      </form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            board.createSession(title, count);
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-xl">Create a retro session</DialogTitle>
+            <DialogDescription>
+              You’ll join as the host and Member 1. Every participant stays
+              anonymous on notes, themes, and votes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+            <div className="grid gap-1.5">
+              <Label htmlFor="session-topic">Session topic</Label>
+              <Input
+                id="session-topic"
+                value={title}
+                maxLength={60}
+                required
+                onChange={(e) => setTitle(e.target.value)}
+                className="glass-soft min-h-[42px] rounded-xl"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="session-members">Anonymous members</Label>
+              <select
+                id="session-members"
+                className="glass-soft min-h-[42px] w-full rounded-xl px-2.5 text-sm text-slate-700 focus:outline-none dark:text-slate-200"
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+              >
+                {MEMBER_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? "member" : "members"}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" asChild>
+              <label htmlFor="board-file-input">Open saved board</label>
+            </Button>
+            <Button type="submit">Create session</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -160,20 +176,27 @@ export function ResetDialog({ board }: { board: RetroBoard }) {
   return (
     <Dialog
       open={board.resetOpen}
-      onClose={() => board.setResetOpen(false)}
-      labelledBy="resetTitle"
+      onOpenChange={(open) => {
+        if (!open) board.setResetOpen(false);
+      }}
     >
-      <DialogTitle id="resetTitle">Reset this board?</DialogTitle>
-      <DialogDescription>
-        This clears every note, vote, and action item from the current session.
-        Download a snapshot first if you want to keep it.
-      </DialogDescription>
-      <DialogFooter>
-        <Button onClick={() => board.setResetOpen(false)}>Keep board</Button>
-        <Button variant="primary" onClick={board.confirmReset}>
-          Reset
-        </Button>
-      </DialogFooter>
+      <DialogContent className="glass-strong rounded-3xl sm:max-w-[440px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Reset this board?</DialogTitle>
+          <DialogDescription>
+            This clears every note, vote, and action item from the current
+            session. Download a snapshot first if you want to keep it.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => board.setResetOpen(false)}>
+            Keep board
+          </Button>
+          <Button variant="destructive" onClick={board.confirmReset}>
+            Reset
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

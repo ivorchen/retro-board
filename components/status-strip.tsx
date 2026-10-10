@@ -10,6 +10,7 @@ import {
 } from "@/lib/selectors";
 import { COLUMNS, VOTE_BUDGET } from "@/lib/types";
 import { formatTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
@@ -22,46 +23,58 @@ function Prompt({ board }: { board: RetroBoard }) {
   if (state.stage === "review") {
     content = (
       <>
-        <strong>Discuss the strongest themes.</strong> Turn the decisions into
-        clear actions with owners and dates.
+        <strong className="font-semibold text-slate-900 dark:text-white">
+          Discuss the strongest themes.
+        </strong>{" "}
+        Turn the decisions into clear actions with owners and dates.
       </>
     );
   } else if (state.stage === "write" && key) {
     content = (
       <>
-        <strong>Write quietly.</strong> Add one concrete thought about{" "}
-        {COLUMNS[key].short}.
+        <strong className="font-semibold text-slate-900 dark:text-white">
+          Write quietly.
+        </strong>{" "}
+        Add one concrete thought about {COLUMNS[key].short}.
       </>
     );
   } else if (state.stage === "group") {
     content = host ? (
       <>
-        <strong>Review the automatic groups.</strong> Drag anonymous notes
-        between themes before voting starts.
+        <strong className="font-semibold text-slate-900 dark:text-white">
+          Review the automatic groups.
+        </strong>{" "}
+        Drag anonymous notes between themes before voting starts.
       </>
     ) : (
       <>
-        <strong>Grouping in progress.</strong> The host is correcting themes
-        before voting starts.
+        <strong className="font-semibold text-slate-900 dark:text-white">
+          Grouping in progress.
+        </strong>{" "}
+        The host is correcting themes before voting starts.
       </>
     );
   } else if (key && everyoneFinishedVoting(state, key)) {
     content = (
       <>
-        <strong>Voting complete.</strong> Results are revealed; highest-voted
-        themes appear first.
+        <strong className="font-semibold text-slate-900 dark:text-white">
+          Voting complete.
+        </strong>{" "}
+        Results are revealed; highest-voted themes appear first.
       </>
     );
   } else {
     content = (
       <>
-        <strong>Vote privately.</strong> Totals stay hidden until every
-        anonymous member finishes.
+        <strong className="font-semibold text-slate-900 dark:text-white">
+          Vote privately.
+        </strong>{" "}
+        Totals stay hidden until every anonymous member finishes.
       </>
     );
   }
   return (
-    <div className="prompt" id="sessionPrompt">
+    <div className="text-sm text-slate-600 dark:text-slate-300" id="sessionPrompt">
       {content}
     </div>
   );
@@ -103,17 +116,31 @@ export function StatusStrip({ board }: { board: RetroBoard }) {
   }
 
   return (
-    <section className="status-strip" aria-label="Session status">
+    <section
+      aria-label="Session status"
+      className="glass mb-4 grid items-center gap-4 rounded-2xl p-4 md:grid-cols-[minmax(220px,1fr)_auto]"
+    >
       <Prompt board={board} />
-      <div className="tools">
-        <div className="member-switch" aria-label="Current anonymous participant">
-          <Badge variant={host ? "host" : "member"}>
-            {host ? "HOST" : "MEMBER"}
+      <div className="flex flex-wrap items-center justify-end gap-2 max-md:justify-start">
+        <div
+          className="inline-flex items-center gap-1.5 rounded-xl border border-white/50 bg-white/50 p-1 backdrop-blur-md dark:border-white/10 dark:bg-white/5"
+          aria-label="Current anonymous participant"
+        >
+          <Badge
+            className={cn(
+              "font-mono text-[9px] tracking-wider uppercase",
+              host
+                ? "border-transparent bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-slate-400"
+            )}
+          >
+            {host ? "Host" : "Member"}
           </Badge>
           <select
             aria-label="Current anonymous participant"
             value={state.currentMemberId}
             onChange={(e) => board.selectMember(e.target.value)}
+            className="max-w-[152px] border-0 bg-transparent px-1.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none dark:text-slate-200"
           >
             {state.members.map((m) => {
               const finished =
@@ -129,13 +156,22 @@ export function StatusStrip({ board }: { board: RetroBoard }) {
               );
             })}
           </select>
-          <Button onClick={board.addMember} disabled={!host}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={board.addMember}
+            disabled={!host}
+            className="h-8 text-xs"
+          >
             + Member
           </Button>
         </div>
 
         {showBudget && (
-          <Badge variant="budget">
+          <Badge
+            variant="outline"
+            className="glass font-mono text-xs text-slate-600 dark:text-slate-300"
+          >
             {iAmDone
               ? `${member.name}: voting submitted`
               : `${member.name}: ${remaining} ${remaining === 1 ? "vote left" : "votes left"}`}
@@ -143,31 +179,44 @@ export function StatusStrip({ board }: { board: RetroBoard }) {
         )}
 
         {showTimer && (
-          <div className="timer" aria-label="Writing timer">
-            <span className="time-value">{formatTime(state.timerSeconds)}</span>
+          <div
+            className="inline-flex items-center gap-1 rounded-xl border border-white/50 bg-white/50 p-1 backdrop-blur-md dark:border-white/10 dark:bg-white/5"
+            aria-label="Writing timer"
+          >
+            <span className="min-w-[57px] text-center font-mono text-[13px] font-medium text-slate-800 tabular-nums dark:text-slate-100">
+              {formatTime(state.timerSeconds)}
+            </span>
             <Button
               size="icon"
+              variant="ghost"
+              className="size-8"
               onClick={board.toggleTimer}
               disabled={!host}
               aria-label={state.timerRunning ? "Pause timer" : "Start timer"}
               title={state.timerRunning ? "Pause timer" : "Start timer"}
             >
-              {state.timerRunning ? <Pause size={16} /> : <Play size={16} />}
+              {state.timerRunning ? (
+                <Pause className="size-4" />
+              ) : (
+                <Play className="size-4" />
+              )}
             </Button>
             <Button
               size="icon"
+              variant="ghost"
+              className="size-8"
               onClick={board.resetTimer}
               disabled={!host}
               aria-label="Reset timer"
               title="Reset timer"
             >
-              <RotateCcw size={16} />
+              <RotateCcw className="size-4" />
             </Button>
           </div>
         )}
 
         {!advanceHidden && (
-          <Button variant="primary" onClick={board.advance} disabled={advanceDisabled}>
+          <Button onClick={board.advance} disabled={advanceDisabled}>
             {advanceLabel}
           </Button>
         )}

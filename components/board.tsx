@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { EyeOff, GripVertical } from "lucide-react";
 import type { RetroBoard } from "@/hooks/use-retro-board";
 import {
   activeKey,
@@ -24,6 +25,34 @@ import { Button } from "./ui/button";
 
 type ThemeMode = "group" | "vote" | "summary" | "review";
 
+/* Per-column Liquid Glass tone. All classes are complete literals for Tailwind. */
+const TONES: Record<
+  ColumnKey,
+  { bar: string; chip: string; card: string; ring: string; voteHover: string }
+> = {
+  went: {
+    bar: "from-amber-200 via-amber-400 to-orange-400",
+    chip: "border-amber-300/50 bg-amber-300/25 text-amber-800 dark:border-amber-300/25 dark:bg-amber-400/10 dark:text-amber-200",
+    card: "border-amber-200/50 dark:border-amber-200/15",
+    ring: "ring-amber-400/70",
+    voteHover: "hover:border-amber-300 hover:bg-amber-100/60 dark:hover:bg-amber-400/10",
+  },
+  improve: {
+    bar: "from-rose-200 via-rose-400 to-pink-500",
+    chip: "border-rose-300/50 bg-rose-300/25 text-rose-800 dark:border-rose-300/25 dark:bg-rose-400/10 dark:text-rose-200",
+    card: "border-rose-200/50 dark:border-rose-200/15",
+    ring: "ring-rose-400/70",
+    voteHover: "hover:border-rose-300 hover:bg-rose-100/60 dark:hover:bg-rose-400/10",
+  },
+  ideas: {
+    bar: "from-emerald-200 via-emerald-400 to-teal-500",
+    chip: "border-emerald-300/50 bg-emerald-300/25 text-emerald-800 dark:border-emerald-300/25 dark:bg-emerald-400/10 dark:text-emerald-200",
+    card: "border-emerald-200/50 dark:border-emerald-200/15",
+    ring: "ring-emerald-400/70",
+    voteHover: "hover:border-emerald-300 hover:bg-emerald-100/60 dark:hover:bg-emerald-400/10",
+  },
+};
+
 function plural(count: number, one: string, many: string) {
   return `${count} ${count === 1 ? one : many}`;
 }
@@ -44,10 +73,13 @@ function NoteCard({
   onCloseMenu: () => void;
 }) {
   return (
-    <article className="card" aria-label="Hidden anonymous note">
-      <div className="card-menu">
+    <article
+      className="glass-soft group relative rounded-2xl p-3.5"
+      aria-label="Hidden anonymous note"
+    >
+      <div className="absolute top-2 right-2">
         <button
-          className="card-menu-btn"
+          className="grid size-[30px] place-items-center rounded-lg text-lg leading-none text-slate-400 transition-colors hover:bg-white/60 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-white/10 dark:hover:text-slate-200"
           type="button"
           onClick={onToggleMenu}
           aria-label="Note options"
@@ -55,9 +87,9 @@ function NoteCard({
           ···
         </button>
         {menuOpen && (
-          <div className="menu-pop">
+          <div className="glass-strong absolute top-9 right-0 z-20 w-[170px] rounded-xl p-1.5">
             <button
-              className="delete"
+              className="w-full rounded-lg px-2.5 py-2 text-left text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
               type="button"
               onClick={() => {
                 board.deleteNote(note.id);
@@ -69,12 +101,20 @@ function NoteCard({
           </div>
         )}
       </div>
-      <p className="card-text concealed" aria-hidden="true">
+      <p
+        className="mr-8 mb-3 leading-relaxed break-words whitespace-pre-wrap blur-md select-none"
+        aria-hidden="true"
+      >
         {note.text}
       </p>
-      <div className="card-footer">
-        <span className="concealed-label">Anonymous · hidden until grouping</span>
-        <span className="card-time">{note.created}</span>
+      <div className="flex min-h-[30px] items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
+          <EyeOff className="size-3.5" aria-hidden="true" />
+          Anonymous · hidden until grouping
+        </span>
+        <span className="ml-auto text-[11px] text-slate-400 dark:text-slate-500">
+          {note.created}
+        </span>
       </div>
     </article>
   );
@@ -95,12 +135,14 @@ function ThemeCard({
   board,
   group,
   mode,
+  columnKey,
   allGroups,
   drag,
 }: {
   board: RetroBoard;
   group: RetroGroup;
   mode: ThemeMode;
+  columnKey: ColumnKey;
   allGroups?: RetroGroup[];
   drag?: DragHandlers;
 }) {
@@ -110,6 +152,7 @@ function ThemeCard({
   const notes = notesForGroup(state, group);
   const title = group.title || "Untitled theme";
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const tone = TONES[columnKey];
 
   React.useEffect(() => {
     if (board.pendingFocusTheme === group.id && inputRef.current) {
@@ -123,14 +166,16 @@ function ThemeCard({
     mode === "group" && host ? (
       <input
         ref={inputRef}
-        className="theme-title-input"
+        className="-m-1.5 w-full min-w-0 rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm font-bold text-slate-900 transition-colors hover:border-slate-300/70 focus:border-violet-400 focus:bg-white/70 focus:outline-none dark:text-white dark:hover:border-white/20 dark:focus:bg-white/10"
         value={title}
         maxLength={THEME_TITLE_MAX}
         aria-label="Theme name"
         onChange={(e) => board.renameGroup(group.id, e.target.value)}
       />
     ) : (
-      <h3 className="theme-title">{title}</h3>
+      <h3 className="min-w-0 flex-1 text-sm font-bold break-words text-slate-900 dark:text-white">
+        {title}
+      </h3>
     );
 
   let notesNode: React.ReactNode;
@@ -141,22 +186,30 @@ function ThemeCard({
           <div
             key={note.id}
             className={cn(
-              "regroup-note",
-              drag.draggedNoteId === note.id && "dragging"
+              "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl border border-transparent border-b-slate-200/60 px-2 py-2 transition-all dark:border-b-white/10",
+              drag.draggedNoteId === note.id &&
+                "scale-[0.98] border-violet-300/60 bg-violet-100/40 opacity-60 dark:border-violet-300/30 dark:bg-violet-400/10",
+              host && "cursor-grab active:cursor-grabbing"
             )}
             draggable={host}
             onDragStart={host ? (e) => drag.onDragStart(e, note.id) : undefined}
             onDragEnd={host ? drag.onDragEnd : undefined}
           >
             {host && (
-              <span className="drag-cue" aria-hidden="true">
-                DRAG
+              <span
+                className="flex items-center gap-0.5 font-mono text-[9px] font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500"
+                aria-hidden="true"
+              >
+                <GripVertical className="size-3.5" />
+                <span className="max-lg:hidden">Drag</span>
               </span>
             )}
-            <p className="theme-note">{note.text}</p>
+            <p className="m-0 text-xs leading-relaxed break-words text-slate-700 dark:text-slate-200">
+              {note.text}
+            </p>
             {host && (
               <select
-                className="move-select"
+                className="max-w-[150px] rounded-lg border border-slate-300/60 bg-white/60 px-2 py-1.5 text-[11px] text-slate-500 backdrop-blur-sm focus:outline-none max-lg:w-full max-lg:max-w-none dark:border-white/15 dark:bg-white/10 dark:text-slate-300"
                 value={group.id}
                 aria-label="Move anonymous note to another theme"
                 onChange={(e) => {
@@ -182,7 +235,10 @@ function ThemeCard({
     notesNode = (
       <>
         {notes.map((n) => (
-          <p key={n.id} className="theme-note">
+          <p
+            key={n.id}
+            className="m-0 border-b border-dashed border-slate-300/60 pb-1.5 text-xs leading-relaxed break-words text-slate-700 last:border-b-0 last:pb-0 dark:border-white/10 dark:text-slate-200"
+          >
             {n.text}
           </p>
         ))}
@@ -196,14 +252,21 @@ function ThemeCard({
     const done = memberFinishedVoting(state, key, state.currentMemberId);
     const disabled = done || memberVotesUsed(state, key) >= VOTE_BUDGET;
     foot = revealed ? (
-      <div className="theme-foot">
-        <span className="theme-votes">{plural(group.votes, "vote", "votes")}</span>
+      <div className="flex items-center gap-2 px-3 pt-0 pb-3">
+        <span className="ml-auto font-mono text-sm font-bold text-slate-800 tabular-nums dark:text-slate-100">
+          {plural(group.votes, "vote", "votes")}
+        </span>
       </div>
     ) : (
-      <div className="theme-foot">
-        <span className="theme-votes">{plural(notes.length, "note", "notes")}</span>
+      <div className="flex items-center gap-2 px-3 pt-0 pb-3">
+        <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
+          {plural(notes.length, "note", "notes")}
+        </span>
         <button
-          className="vote-btn"
+          className={cn(
+            "glass ml-auto inline-flex h-[30px] min-w-[64px] items-center justify-center gap-1.5 rounded-full px-3 font-mono text-xs font-semibold text-slate-700 transition-all disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200",
+            !disabled && tone.voteHover
+          )}
           type="button"
           onClick={() => board.voteGroup(group.id)}
           disabled={disabled}
@@ -216,32 +279,51 @@ function ThemeCard({
     );
   } else if (mode === "summary") {
     foot = (
-      <div className="theme-foot">
-        <span className="theme-votes">{plural(group.votes, "vote", "votes")}</span>
+      <div className="flex items-center gap-2 px-3 pt-0 pb-3">
+        <span className="ml-auto font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+          {plural(group.votes, "vote", "votes")}
+        </span>
       </div>
     );
   } else if (mode === "review") {
     foot = (
-      <div className="theme-foot">
-        <Button onClick={() => board.actionFromTheme(group.id)}>+ Make action</Button>
-        <span className="theme-votes">{plural(group.votes, "vote", "votes")}</span>
+      <div className="flex items-center gap-2 px-3 pt-0 pb-3">
+        <Button size="sm" onClick={() => board.actionFromTheme(group.id)}>
+          + Make action
+        </Button>
+        <span className="ml-auto font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+          {plural(group.votes, "vote", "votes")}
+        </span>
       </div>
     );
   }
 
   return (
     <section
-      className={cn("theme", drag && drag.dropTargetId === group.id && "drop-target")}
+      className={cn(
+        "glass-soft overflow-hidden rounded-2xl transition-all",
+        tone.card,
+        drag &&
+          drag.dropTargetId === group.id &&
+          cn("scale-[1.01] ring-2 ring-offset-2 ring-offset-transparent", tone.ring)
+      )}
       onDragOver={
         drag && host ? (e) => drag.onThemeDragOver(e, group.id) : undefined
       }
       onDrop={drag && host ? (e) => drag.onThemeDrop(e, group.id) : undefined}
     >
-      <div className="theme-head">
+      <div className="flex items-center gap-2 border-b border-slate-200/50 px-3 py-2.5 dark:border-white/10">
         {head}
-        <span className="theme-count">{notes.length}</span>
+        <span
+          className={cn(
+            "rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold whitespace-nowrap",
+            tone.chip
+          )}
+        >
+          {notes.length}
+        </span>
       </div>
-      <div className="theme-notes">{notesNode}</div>
+      <div className="grid gap-1.5 px-3 py-2.5">{notesNode}</div>
       {foot}
     </section>
   );
@@ -270,6 +352,7 @@ function ColumnView({
   const review = state.stage === "review";
   const active = index === state.currentRound;
   const notes = state.notes.filter((n) => n.column === columnKey);
+  const tone = TONES[columnKey];
 
   let body: React.ReactNode;
   if (review) {
@@ -278,10 +361,12 @@ function ColumnView({
       .sort((a, b) => b.votes - a.votes);
     body = groups.length ? (
       groups.map((g) => (
-        <ThemeCard key={g.id} board={board} group={g} mode="review" />
+        <ThemeCard key={g.id} board={board} group={g} mode="review" columnKey={columnKey} />
       ))
     ) : (
-      <div className="empty">No themes were created for this topic.</div>
+      <div className="glass-soft grid min-h-[116px] place-items-center rounded-2xl p-5 text-center text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
+        No themes were created for this topic.
+      </div>
     );
   } else if (index < state.currentRound) {
     const groups = groupsFor(state, columnKey)
@@ -289,14 +374,16 @@ function ColumnView({
       .sort((a, b) => b.votes - a.votes);
     body = groups.length ? (
       groups.map((g) => (
-        <ThemeCard key={g.id} board={board} group={g} mode="summary" />
+        <ThemeCard key={g.id} board={board} group={g} mode="summary" columnKey={columnKey} />
       ))
     ) : (
-      <div className="locked-message">This topic is complete.</div>
+      <div className="grid min-h-[96px] place-items-center p-4 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+        This topic is complete.
+      </div>
     );
   } else if (index > state.currentRound) {
     body = (
-      <div className="locked-message">
+      <div className="grid min-h-[96px] place-items-center p-4 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
         Finish {key ? COLUMNS[key].title : ""} before starting this topic.
       </div>
     );
@@ -313,44 +400,56 @@ function ColumnView({
         />
       ))
     ) : (
-      <div className="empty">
-        No notes yet.
-        <br />
-        Start with one honest observation.
+      <div className="glass-soft grid min-h-[116px] place-items-center rounded-2xl border-dashed p-5 text-center text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
+        <span>
+          No notes yet.
+          <br />
+          Start with one honest observation.
+        </span>
       </div>
     );
   } else if (state.stage === "group") {
     const groups = groupsFor(state, columnKey);
     body = groups.length ? (
       <>
-        <div className="group-tools">
-          <div className="auto-group-summary">
-            <span className="auto-group-mark">✓</span>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="glass-soft flex flex-1 basis-[320px] items-center gap-2.5 rounded-2xl p-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <span className="grid size-6 flex-none place-items-center rounded-full bg-emerald-400/25 font-mono text-[11px] font-bold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
+              ✓
+            </span>
             <span>
               {host ? (
                 <>
-                  <strong>Automatic grouping complete.</strong> As host, drag
-                  notes between themes, rename themes, or create a new one.
+                  <strong className="font-semibold text-slate-900 dark:text-white">
+                    Automatic grouping complete.
+                  </strong>{" "}
+                  As host, drag notes between themes, rename themes, or create a
+                  new one.
                 </>
               ) : (
                 <>
-                  <strong>The host is reviewing themes.</strong> Notes remain
-                  anonymous while the host corrects the grouping.
+                  <strong className="font-semibold text-slate-900 dark:text-white">
+                    The host is reviewing themes.
+                  </strong>{" "}
+                  Notes remain anonymous while the host corrects the grouping.
                 </>
               )}
             </span>
           </div>
           {host && (
-            <Button onClick={() => board.addTheme(columnKey)}>+ New theme</Button>
+            <Button size="sm" onClick={() => board.addTheme(columnKey)}>
+              + New theme
+            </Button>
           )}
         </div>
-        <div className="theme-stack">
+        <div className="grid gap-2.5">
           {groups.map((g) => (
             <ThemeCard
               key={g.id}
               board={board}
               group={g}
               mode="group"
+              columnKey={columnKey}
               allGroups={groups}
               drag={drag}
             />
@@ -358,7 +457,9 @@ function ColumnView({
         </div>
       </>
     ) : (
-      <div className="empty">No notes to group for this topic.</div>
+      <div className="glass-soft grid min-h-[116px] place-items-center rounded-2xl p-5 text-center text-[13px] text-slate-500 dark:text-slate-400">
+        No notes to group for this topic.
+      </div>
     );
   } else {
     const groups = groupsFor(state, columnKey).slice();
@@ -366,31 +467,43 @@ function ColumnView({
       groups.sort((a, b) => b.votes - a.votes);
     body = groups.length ? (
       groups.map((g) => (
-        <ThemeCard key={g.id} board={board} group={g} mode="vote" />
+        <ThemeCard key={g.id} board={board} group={g} mode="vote" columnKey={columnKey} />
       ))
     ) : (
-      <div className="empty">No themes to vote on.</div>
+      <div className="glass-soft grid min-h-[116px] place-items-center rounded-2xl p-5 text-center text-[13px] text-slate-500 dark:text-slate-400">
+        No themes to vote on.
+      </div>
     );
   }
 
   return (
     <article
       className={cn(
-        "column",
-        !review && !active && "inactive",
-        !review && index > state.currentRound && "future"
+        "glass min-w-0 overflow-hidden rounded-3xl transition-opacity",
+        !review && !active && "opacity-60 max-md:hidden"
       )}
       data-column={columnKey}
     >
-      <div className="column-head">
-        <div className="column-title-row">
-          <h2 className="column-title">{COLUMNS[columnKey].title}</h2>
-          <span className="count">{notes.length}</span>
+      {/* tone accent bar */}
+      <div
+        aria-hidden="true"
+        className={cn("h-1.5 bg-gradient-to-r", tone.bar)}
+      />
+      <div className="border-b border-slate-200/50 px-4 pt-3.5 pb-3 dark:border-white/10">
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-[17px] font-bold tracking-tight text-slate-900 dark:text-white">
+            {COLUMNS[columnKey].title}
+          </h2>
+          <span className="ml-auto font-mono text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            {notes.length}
+          </span>
         </div>
-        <p className="column-prompt">{COLUMNS[columnKey].prompt}</p>
+        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+          {COLUMNS[columnKey].prompt}
+        </p>
         {active && state.stage === "write" && (
           <button
-            className="add-note"
+            className="mt-3 min-h-[40px] w-full rounded-xl border border-dashed border-slate-400/60 bg-white/30 px-3 py-2 text-left text-sm font-semibold text-slate-500 backdrop-blur-sm transition-all hover:border-violet-400/70 hover:bg-violet-100/40 hover:text-slate-800 dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:border-violet-300/40 dark:hover:bg-violet-400/10 dark:hover:text-slate-100"
             type="button"
             onClick={() => board.openComposer("note", columnKey)}
           >
@@ -398,7 +511,9 @@ function ColumnView({
           </button>
         )}
       </div>
-      <div className="notes">{body}</div>
+      <div className="grid min-h-[150px] content-start gap-2.5 p-3 max-md:min-h-[92px]">
+        {body}
+      </div>
     </article>
   );
 }
@@ -446,7 +561,10 @@ export function Board({ board }: { board: RetroBoard }) {
   };
 
   return (
-    <section className="board" aria-label="Retrospective board">
+    <section
+      className="grid grid-cols-3 items-start gap-3.5 max-md:grid-cols-1 max-md:gap-4"
+      aria-label="Retrospective board"
+    >
       {COLUMN_ORDER.map((key, i) => (
         <ColumnView
           key={key}

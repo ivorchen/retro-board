@@ -23,16 +23,18 @@ export default function Page() {
   const review = board.state.stage === "review";
 
   return (
-    <div className="app">
+    <div className="min-h-screen">
       <TopBar board={board} />
-      <main className="workspace">
+      <main className="mx-auto w-full max-w-[1560px] px-4 pt-5 pb-14 sm:px-6">
         <StatusStrip board={board} />
         <WorkflowStepper board={board} />
         {review && (
-          <div className="review-intro">
-            <strong>Review the results.</strong> The highest-voted themes appear
-            first. Discuss what matters most, then turn a theme into an owned
-            action.
+          <div className="glass mb-4 rounded-2xl p-4 text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
+            <strong className="font-semibold text-slate-900 dark:text-white">
+              Review the results.
+            </strong>{" "}
+            The highest-voted themes appear first. Discuss what matters most,
+            then turn a theme into an owned action.
           </div>
         )}
         <Board board={board} />
