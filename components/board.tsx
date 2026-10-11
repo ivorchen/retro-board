@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { EyeOff, GripVertical } from "lucide-react";
+import { Eye, EyeOff, GripVertical } from "lucide-react";
 import type { RetroBoard } from "@/hooks/use-retro-board";
 import {
   activeKey,
@@ -72,10 +72,11 @@ function NoteCard({
   onToggleMenu: () => void;
   onCloseMenu: () => void;
 }) {
+  const isMine = note.authorId === board.state.currentMemberId;
   return (
     <article
       className="glass-soft group relative rounded-2xl p-3.5"
-      aria-label="Hidden anonymous note"
+      aria-label={isMine ? "Your note" : "Hidden anonymous note"}
     >
       <div className="absolute top-2 right-2">
         <button
@@ -102,16 +103,26 @@ function NoteCard({
         )}
       </div>
       <p
-        className="mr-8 mb-3 leading-relaxed break-words whitespace-pre-wrap blur-md select-none"
-        aria-hidden="true"
+        className={cn(
+          "mr-8 mb-3 leading-relaxed break-words whitespace-pre-wrap",
+          !isMine && "blur-md select-none"
+        )}
+        aria-hidden={!isMine}
       >
         {note.text}
       </p>
       <div className="flex min-h-[30px] items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
-          <EyeOff className="size-3.5" aria-hidden="true" />
-          Anonymous · hidden until grouping
-        </span>
+        {isMine ? (
+          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-medium tracking-wide text-violet-600 uppercase dark:text-violet-300">
+            <Eye className="size-3.5" aria-hidden="true" />
+            Your note · visible only to you
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
+            <EyeOff className="size-3.5" aria-hidden="true" />
+            Anonymous · hidden until grouping
+          </span>
+        )}
         <span className="ml-auto text-[11px] text-slate-400 dark:text-slate-500">
           {note.created}
         </span>

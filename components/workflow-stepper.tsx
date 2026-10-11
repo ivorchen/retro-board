@@ -17,11 +17,8 @@ export function WorkflowStepper({ board }: { board: RetroBoard }) {
   const current = order.indexOf(state.stage);
 
   return (
-    <section
-      aria-label="Steps for this topic"
-      className="glass mb-4 overflow-hidden rounded-2xl"
-    >
-      <ol className="grid list-none grid-cols-3 max-sm:grid-cols-1">
+    <section aria-label="Steps for this topic" className="mb-4">
+      <ol className="grid list-none grid-cols-3 gap-2 max-sm:grid-cols-1">
         {STEPS.map((step, i) => {
           const isActive = step.key === state.stage;
           const isComplete = current > i;
@@ -29,8 +26,7 @@ export function WorkflowStepper({ board }: { board: RetroBoard }) {
             <li
               key={step.key}
               className={cn(
-                "relative flex min-w-0 items-center gap-3 px-4 py-3 transition-colors",
-                "border-white/40 max-sm:border-t max-sm:first:border-t-0 sm:border-l sm:first:border-l-0 dark:border-white/10",
+                "glass relative flex min-w-0 items-center gap-3 rounded-2xl px-4 py-3 transition-colors",
                 isActive &&
                   "bg-gradient-to-br from-violet-500/15 via-fuchsia-500/10 to-transparent"
               )}
