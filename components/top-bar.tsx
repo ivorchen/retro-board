@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, Trash2, Upload } from "lucide-react";
+import * as React from "react";
+import { Check, Download, Share2, Trash2, Upload } from "lucide-react";
 import type { RetroBoard } from "@/hooks/use-retro-board";
 import { TITLE_MAX } from "@/lib/types";
 import { Button } from "./ui/button";
@@ -10,12 +11,31 @@ import { ThemeToggle } from "./theme-toggle";
 export function TopBar({
   board,
   hideReset = false,
+  shareLink,
 }: {
   board: RetroBoard;
   hideReset?: boolean;
+  shareLink?: string;
 }) {
   const { state } = board;
   const noteCount = state.notes.length;
+  const [copied, setCopied] = React.useState(false);
+
+  const copyInviteLink = async () => {
+    if (!shareLink) return;
+    try {
+      await navigator.clipboard.writeText(shareLink);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = shareLink;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/50 bg-white/55 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/45">
@@ -52,6 +72,23 @@ export function TopBar({
             className="flex flex-wrap items-center justify-end gap-2"
             aria-label="Board tools"
           >
+            {shareLink && (
+              <Button
+                variant="outline"
+                onClick={copyInviteLink}
+                title="Copy invite link for members"
+                className="glass-btn max-sm:flex-1"
+              >
+                {copied ? (
+                  <Check className="size-4" aria-hidden="true" />
+                ) : (
+                  <Share2 className="size-4" aria-hidden="true" />
+                )}
+                <span className="max-sm:hidden">
+                  {copied ? "Copied" : "Share"}
+                </span>
+              </Button>
+            )}
             <Button variant="outline" asChild className="glass-btn max-sm:flex-1">
               <label htmlFor="board-file-input" title="Open a saved board">
                 <Upload className="size-4" aria-hidden="true" />

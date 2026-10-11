@@ -31,7 +31,7 @@ export function SessionBoard({
 
   return (
     <div className="min-h-screen">
-      <TopBar board={board} hideReset />
+      <TopBar board={board} hideReset shareLink={board.shareLink} />
       <main className="mx-auto w-full max-w-[1560px] px-4 pt-5 pb-14 sm:px-6">
         <StatusStrip board={board} hideMemberSwitcher />
         <WorkflowStepper board={board} />
