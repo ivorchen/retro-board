@@ -7,6 +7,7 @@ import {
 import { signJwt } from "@/server/auth/jwt";
 import { setSessionCookie } from "@/server/auth/session";
 import { newId, nowIso, clearCookie } from "@/server/api-helpers";
+import { appUrl } from "@/server/auth/app-url";
 
 export const runtime = "nodejs";
 
@@ -34,10 +35,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!code || !state || !saved || saved.state !== state) {
-    return NextResponse.redirect(
-      new URL("/login?error=state", req.url),
-      307
-    );
+    return NextResponse.redirect(appUrl("/login?error=state"), 307);
   }
 
   const token = await exchangeCodeForToken(code);
@@ -70,7 +68,7 @@ export async function GET(req: NextRequest) {
   );
   const next =
     saved.next && saved.next.startsWith("/") ? saved.next : "/dashboard";
-  const res = NextResponse.redirect(new URL(next, req.url), 307);
+  const res = NextResponse.redirect(appUrl(next), 307);
   setSessionCookie(res, jwt);
   clearCookie(res, "rb_oauth_state");
   return res;

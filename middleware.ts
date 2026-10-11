@@ -8,6 +8,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyJwt } from "./server/auth/jwt";
+import { appUrl } from "./server/auth/app-url";
 
 export const config = {
   matcher: ["/dashboard/:path*", "/new/:path*"],
@@ -16,11 +17,11 @@ export const config = {
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("rb_session")?.value;
   if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(appUrl("/login"));
   }
   const payload = await verifyJwt(token);
   if (!payload) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(appUrl("/login"));
   }
   return NextResponse.next();
 }

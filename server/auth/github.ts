@@ -6,9 +6,9 @@
  * error when they are missing instead of building a broken request.
  */
 
-export function getAppUrl(): string {
-  return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
-}
+import { getAppUrl } from "./app-url";
+
+export { getAppUrl };
 
 export function getGithubAuthUrl(state: string): string {
   const clientId = process.env.GITHUB_CLIENT_ID;

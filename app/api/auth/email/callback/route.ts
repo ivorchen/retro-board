@@ -3,6 +3,7 @@ import { getDb } from "@/server/db/index";
 import { signJwt } from "@/server/auth/jwt";
 import { setSessionCookie } from "@/server/auth/session";
 import { newId, nowIso, sha256, clearCookie } from "@/server/api-helpers";
+import { appUrl } from "@/server/auth/app-url";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   const fail = () =>
-    NextResponse.redirect(new URL("/login?error=invalid_token", req.url), 307);
+    NextResponse.redirect(appUrl("/login?error=invalid_token"), 307);
   if (!token) return fail();
 
   const db = getDb();
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
   const nextRaw = req.cookies.get("rb_next")?.value;
   const next =
     nextRaw && nextRaw.startsWith("/") ? nextRaw : "/dashboard";
-  const res = NextResponse.redirect(new URL(next, req.url), 307);
+  const res = NextResponse.redirect(appUrl(next), 307);
   setSessionCookie(res, jwt);
   clearCookie(res, "rb_next");
   return res;

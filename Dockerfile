@@ -13,6 +13,7 @@ RUN pnpm install --frozen-lockfile
 # --- builder: compile the standalone Next.js server --------------------------
 FROM base AS builder
 WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@10.34.6 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
