@@ -42,7 +42,7 @@ export interface ComposerState {
   editingId: string | null;
 }
 
-type BoardAction =
+export type BoardAction =
   | { type: "SET_TITLE"; title: string }
   | { type: "CREATE_SESSION"; title: string; memberCount: number }
   | { type: "SELECT_MEMBER"; id: string }
@@ -110,7 +110,7 @@ function moveNoteInGroups(
     );
 }
 
-function reducer(state: BoardState, action: BoardAction): BoardState {
+export function reducer(state: BoardState, action: BoardAction): BoardState {
   switch (action.type) {
     case "SET_TITLE":
       return { ...state, title: action.title };

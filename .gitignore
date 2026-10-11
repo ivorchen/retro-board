@@ -19,6 +19,10 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+
+# sqlite database files
+data/
 
 # typescript
 *.tsbuildinfo

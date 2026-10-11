@@ -77,3 +77,27 @@ export const REVIEW_SECONDS = 600;
 export const NOTE_MAX = 280;
 export const TITLE_MAX = 60;
 export const THEME_TITLE_MAX = 80;
+
+/** Server-authoritative session metadata shipped with every serialized session. */
+export interface SessionTimerMeta {
+  endsAt: string | null;
+  seconds: number;
+  running: boolean;
+}
+
+export interface SessionMeta {
+  sessionId: string;
+  shareToken: string;
+  title: string;
+  isHost: boolean;
+  myMemberId: string;
+  myAlias: string;
+  topics: ColumnKey[];
+  timer: SessionTimerMeta;
+}
+
+/** Full payload of GET /api/sessions/[id] and of the SSE "state" events. */
+export interface SerializedSession {
+  state: BoardState;
+  meta: SessionMeta;
+}

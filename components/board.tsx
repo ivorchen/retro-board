@@ -79,7 +79,7 @@ function NoteCard({
     >
       <div className="absolute top-2 right-2">
         <button
-          className="grid size-[30px] place-items-center rounded-lg text-lg leading-none text-slate-400 transition-colors hover:bg-white/60 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-white/10 dark:hover:text-slate-200"
+          className="grid size-[30px] place-items-center rounded-xl text-lg leading-none text-slate-400 transition-colors hover:bg-white/60 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-white/10 dark:hover:text-slate-200"
           type="button"
           onClick={onToggleMenu}
           aria-label="Note options"
@@ -89,7 +89,7 @@ function NoteCard({
         {menuOpen && (
           <div className="glass-strong absolute top-9 right-0 z-20 w-[170px] rounded-xl p-1.5">
             <button
-              className="w-full rounded-lg px-2.5 py-2 text-left text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
+              className="w-full rounded-xl px-2.5 py-2 text-left text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
               type="button"
               onClick={() => {
                 board.deleteNote(note.id);
@@ -166,7 +166,7 @@ function ThemeCard({
     mode === "group" && host ? (
       <input
         ref={inputRef}
-        className="-m-1.5 w-full min-w-0 rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm font-bold text-slate-900 transition-colors hover:border-slate-300/70 focus:border-violet-400 focus:bg-white/70 focus:outline-none dark:text-white dark:hover:border-white/20 dark:focus:bg-white/10"
+        className="-m-1.5 w-full min-w-0 rounded-xl border border-transparent bg-transparent px-1.5 py-1 text-sm font-bold text-slate-900 transition-colors hover:border-slate-300/70 focus:border-violet-400 focus:bg-white/70 focus:outline-none dark:text-white dark:hover:border-white/20 dark:focus:bg-white/10"
         value={title}
         maxLength={THEME_TITLE_MAX}
         aria-label="Theme name"
@@ -209,7 +209,7 @@ function ThemeCard({
             </p>
             {host && (
               <select
-                className="max-w-[150px] rounded-lg border border-slate-300/60 bg-white/60 px-2 py-1.5 text-[11px] text-slate-500 backdrop-blur-sm focus:outline-none max-lg:w-full max-lg:max-w-none dark:border-white/15 dark:bg-white/10 dark:text-slate-300"
+                className="max-w-[150px] rounded-xl border border-slate-300/60 bg-white/60 px-2 py-1.5 text-[11px] text-slate-500 backdrop-blur-sm focus:outline-none max-lg:w-full max-lg:max-w-none dark:border-white/15 dark:bg-white/10 dark:text-slate-300"
                 value={group.id}
                 aria-label="Move anonymous note to another theme"
                 onChange={(e) => {

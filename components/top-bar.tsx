@@ -7,7 +7,13 @@ import { Button } from "./ui/button";
 import { PhaseBar } from "./phase-bar";
 import { ThemeToggle } from "./theme-toggle";
 
-export function TopBar({ board }: { board: RetroBoard }) {
+export function TopBar({
+  board,
+  hideReset = false,
+}: {
+  board: RetroBoard;
+  hideReset?: boolean;
+}) {
   const { state } = board;
   const noteCount = state.notes.length;
 
@@ -61,16 +67,18 @@ export function TopBar({ board }: { board: RetroBoard }) {
               <Download className="size-4" aria-hidden="true" />
               <span className="max-sm:hidden">Download</span>
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => board.setResetOpen(true)}
-              title="Reset board"
-              aria-label="Reset board"
-              className="glass-btn text-rose-600 hover:text-rose-700 dark:text-rose-400"
-            >
-              <Trash2 className="size-4" aria-hidden="true" />
-            </Button>
+            {!hideReset && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => board.setResetOpen(true)}
+                title="Reset board"
+                aria-label="Reset board"
+                className="glass-btn text-rose-600 hover:text-rose-700 dark:text-rose-400"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+              </Button>
+            )}
             <ThemeToggle />
           </div>
         </div>

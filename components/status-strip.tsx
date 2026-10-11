@@ -80,7 +80,13 @@ function Prompt({ board }: { board: RetroBoard }) {
   );
 }
 
-export function StatusStrip({ board }: { board: RetroBoard }) {
+export function StatusStrip({
+  board,
+  hideMemberSwitcher = false,
+}: {
+  board: RetroBoard;
+  hideMemberSwitcher?: boolean;
+}) {
   const { state } = board;
   const key = activeKey(state);
   const host = board.host;
@@ -122,50 +128,72 @@ export function StatusStrip({ board }: { board: RetroBoard }) {
     >
       <Prompt board={board} />
       <div className="flex flex-wrap items-center justify-end gap-2 max-md:justify-start">
-        <div
-          className="inline-flex items-center gap-1.5 rounded-xl border border-white/50 bg-white/50 p-1 backdrop-blur-md dark:border-white/10 dark:bg-white/5"
-          aria-label="Current anonymous participant"
-        >
-          <Badge
-            className={cn(
-              "font-mono text-[9px] tracking-wider uppercase",
-              host
-                ? "border-transparent bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-slate-400"
-            )}
+        {hideMemberSwitcher ? (
+          <div
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/50 bg-white/50 px-2.5 py-1.5 backdrop-blur-md dark:border-white/10 dark:bg-white/5"
+            aria-label="Your anonymous identity"
+            title="You join as this anonymous member; switching is disabled in shared sessions"
           >
-            {host ? "Host" : "Member"}
-          </Badge>
-          <select
+            <Badge
+              className={cn(
+                "font-mono text-[9px] tracking-wider uppercase",
+                host
+                  ? "border-transparent bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                  : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-slate-400"
+              )}
+            >
+              {host ? "Host" : "Member"}
+            </Badge>
+            <span className="px-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
+              {member.name}
+            </span>
+          </div>
+        ) : (
+          <div
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/50 bg-white/50 p-1 backdrop-blur-md dark:border-white/10 dark:bg-white/5"
             aria-label="Current anonymous participant"
-            value={state.currentMemberId}
-            onChange={(e) => board.selectMember(e.target.value)}
-            className="max-w-[152px] border-0 bg-transparent px-1.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none dark:text-slate-200"
           >
-            {state.members.map((m) => {
-              const finished =
-                state.stage === "vote" &&
-                key !== null &&
-                memberFinishedVoting(state, key, m.id);
-              const label = (m.id === state.hostId ? "Host · " : "") + m.name;
-              return (
-                <option key={m.id} value={m.id}>
-                  {label}
-                  {finished ? " · done" : ""}
-                </option>
-              );
-            })}
-          </select>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={board.addMember}
-            disabled={!host}
-            className="h-8 text-xs"
-          >
-            + Member
-          </Button>
-        </div>
+            <Badge
+              className={cn(
+                "font-mono text-[9px] tracking-wider uppercase",
+                host
+                  ? "border-transparent bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                  : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-slate-400"
+              )}
+            >
+              {host ? "Host" : "Member"}
+            </Badge>
+            <select
+              aria-label="Current anonymous participant"
+              value={state.currentMemberId}
+              onChange={(e) => board.selectMember(e.target.value)}
+              className="max-w-[152px] border-0 bg-transparent px-1.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none dark:text-slate-200"
+            >
+              {state.members.map((m) => {
+                const finished =
+                  state.stage === "vote" &&
+                  key !== null &&
+                  memberFinishedVoting(state, key, m.id);
+                const label = (m.id === state.hostId ? "Host · " : "") + m.name;
+                return (
+                  <option key={m.id} value={m.id}>
+                    {label}
+                    {finished ? " · done" : ""}
+                  </option>
+                );
+              })}
+            </select>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={board.addMember}
+              disabled={!host}
+              className="h-8 text-xs"
+            >
+              + Member
+            </Button>
+          </div>
+        )}
 
         {showBudget && (
           <Badge
